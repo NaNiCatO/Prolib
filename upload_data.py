@@ -1,3 +1,4 @@
+# Description: This script reads CSV files from a folder and uploads the data to Neo4j and Redis.
 import os
 import glob
 import pandas as pd
