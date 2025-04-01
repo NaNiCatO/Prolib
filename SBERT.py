@@ -67,10 +67,12 @@ def classify_intent(user_input):
     best_match = None
     best_score = -1
 
-    for category, embedding in TEMPLATE_EMBEDDINGS.items():
-        score = util.pytorch_cos_sim(user_embedding, embedding)[0].item()
-        if score > best_score:
-            best_score = score
+    for category, embeddings in TEMPLATE_EMBEDDINGS.items():  
+        scores = util.pytorch_cos_sim(user_embedding, embeddings)
+        max_score = scores.max().item()
+        
+        if max_score > best_score:
+            best_score = max_score
             best_match = category
 
     return best_match, best_score
