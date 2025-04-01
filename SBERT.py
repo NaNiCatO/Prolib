@@ -1,6 +1,7 @@
 from sentence_transformers import SentenceTransformer, util
+import torch
 
-# Load SBERT model
+# Load the model once
 sbert_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Define standard query templates
@@ -54,11 +55,9 @@ INTENT_CATEGORIES = {
     ]
 }
 
-
-# Encode predefined queries
+# Encode predefined queries only once
 TEMPLATE_EMBEDDINGS = {
-    category: sbert_model.encode(text, convert_to_tensor=True)
-    for category, text in INTENT_CATEGORIES.items()
+    category: sbert_model.encode(texts, convert_to_tensor=True) for category, texts in INTENT_CATEGORIES.items()
 }
 
 def classify_intent(user_input):
@@ -67,13 +66,16 @@ def classify_intent(user_input):
     best_match = None
     best_score = -1
 
-    for category, embedding in TEMPLATE_EMBEDDINGS.items():
-        score = util.pytorch_cos_sim(user_embedding, embedding)[0].item()
-        if score > best_score:
-            best_score = score
+    for category, embeddings in TEMPLATE_EMBEDDINGS.items():  
+        scores = util.pytorch_cos_sim(user_embedding, embeddings)
+        max_score = scores.max().item()
+        
+        if max_score > best_score:
+            best_score = max_score
             best_match = category
 
     return best_match, best_score
+
 
 # --- TESTING ---
 if __name__ == "__main__":
