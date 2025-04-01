@@ -60,7 +60,7 @@ for file in csv_files:
             publisher = row["Publisher"] if pd.notna(row["Publisher"]) else "Unknown"
             categories = row["Categories"].split(", ") if pd.notna(row["Categories"]) else []
             
-            session.write_transaction(create_book, title, authors, publisher, categories)
+            session.execute_write(create_book, title, authors, publisher, categories)
 
     print("Neo4j Upload Completed ✅")
 
