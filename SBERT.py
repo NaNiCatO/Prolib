@@ -85,9 +85,7 @@ if __name__ == "__main__":
         "Summarize The Hobbit.",
         "Recommend books similar to Brave New World.",
         "What are the themes of Frankenstein?",
-        # "Tell me about J.R.R. Tolkien.",
         "Compare 1984 and Brave New World.",
-        # "Explain the impact of Dune on science fiction."
     ]
     
     for query in test_queries:
