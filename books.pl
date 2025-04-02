@@ -23,6 +23,17 @@ book_by_title(Query, Book) :-
     Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
+% Match by exact title (case-insensitive)
+book_by_exact_title(Query, Book) :-
+    downcase_atom(Query, LowerQuery),
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    downcase_atom(Title, LowerTitle),
+    LowerTitle = LowerQuery,
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
+
 % Match by author (partial, case-insensitive)
 book_by_author(Query, Book) :-
     book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
@@ -31,6 +42,28 @@ book_by_author(Query, Book) :-
     contains_ignore_case(Author, Query),
     Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
+% Match if a query string occurs in title or author (NER fallback)
+fallback_entity(Query, Book) :-
+    book(Title, Authors, _, _, _, _, _, _, _, _, _, _, _, _, _),
+    (contains_ignore_case(Title, Query) ;
+     (member(Author, Authors), contains_ignore_case(Author, Query))),
+    Book = book(Title, Authors, _, _, _, _, _, _, _, _, _, _, _, _, _).
+
+
+% Exact (whole string) match for title or author, case-insensitive
+fallback_exact_entity(Query, Book) :-
+    downcase_atom(Query, LowerQuery),
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    (   downcase_atom(Title, LowerTitle), LowerTitle = LowerQuery
+    ;   member(Author, Authors),
+        downcase_atom(Author, LowerAuthor),
+        LowerAuthor = LowerQuery
+    ),
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
 
 book("Core Python Programming", ["Wesley Chun"], "Prentice Hall Professional", "2001", "Experts and novices alike will be able to find information about every command they'll need to use Linux. This complete, practical desk reference is organized by function, with a road map-style alphabetical reference for quick access of information about all aspects of running and administering the program. The CD-ROM contains Windows and Linux Python distributions plus extensive cross-platform source code from the book.", "0130260363", "9780130260369", 805, ["Computers"], "en", "http://books.google.com/books/content?id=mh0bU6NXrBgC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api", 3, 13, "http://books.google.co.th/books?id=mh0bU6NXrBgC&printsec=frontcover&dq=python&hl=&cd=1&source=gbs_api", "http://books.google.co.th/books?id=mh0bU6NXrBgC&dq=python&hl=&source=gbs_api").
 book("Python in a Nutshell", ["Alex Martelli"], "\"O'Reilly Media, Inc.\"", "2006-07-14", "This book offers Python programmers one place to look when they needhelp remembering or deciphering the syntax of this open source languageand its many powerful but scantily documented modules. Thiscomprehensive reference guide makes it easy to look up the mostfrequently needed information--not just about the Python languageitself, but also the most frequently used parts of the standard libraryand the most important third-party extensions. Ask any Python aficionado and you'll hear that Python programmers haveit all: an elegant object-oriented language with readable andmaintainable syntax, that allows for easy integration with componentsin C, C++, Java, or C#, and an enormous collection of precoded standardlibrary and third-party extension modules. Moreover, Python is easy tolearn, yet powerful enough to take on the most ambitious programmingchallenges. But what Python programmers used to lack is a concise andclear reference resource, with the appropriate measure of guidance inhow best to use Python's great power. Python in aNutshell fills this need. Python in a Nutshell, Second Edition covers morethan the language itself; it also deals with the mostfrequently used parts of the standard library, and the most popular andimportant third party extensions. Revised and expanded forPython 2.5, this book now contains the gory details of Python's newsubprocess module and breaking news about Microsoft's newIronPython project. Our \"Nutshell\" format fits Python perfectly bypresenting the highlights of the most important modules and functionsin its standard library, which cover over 90% of your practicalprogramming needs. This book includes: A fast-paced tutorial on the syntax of the Python language An explanation of object-oriented programming in Python Coverage of iterators, generators, exceptions, modules,packages, strings, and regular expressions A quick reference for Python's built-in types and functionsand key modules Reference material on important third-party extensions,such as Numeric and Tkinter Information about extending and embedding Python Python in a Nutshell provides a solid,no-nonsense quick reference to information that programmers rely on themost. This book will immediately earn its place in any Pythonprogrammer's library. Praise for the First Edition: \"In a nutshell, Python in a Nutshell serves oneprimary goal: to act as an immediately accessible goal for the Pythonlanguage. True, you can get most of the same core information that ispresented within the covers of this volume online, but this willinvariably be broken into multiple files, and in all likelihood lackingthe examples or the exact syntax description necessary to trulyunderstand a command.\" --Richard Cobbett, Linux Format \"O'Reilly has several good books, of which Python in aNutshell by Alex Martelli is probably the best for giving yousome idea of what Python is about and how to do useful things with it.\" --Jerry Pournelle, Byte Magazine", "1449379109", "9781449379100", 738, ["Computers"], "en", "http://books.google.com/books/content?id=JnR9hQA3SncC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api", 3, 8, "http://books.google.co.th/books?id=JnR9hQA3SncC&pg=PA80&dq=python&hl=&cd=2&source=gbs_api", "http://books.google.co.th/books?id=JnR9hQA3SncC&dq=python&hl=&source=gbs_api").

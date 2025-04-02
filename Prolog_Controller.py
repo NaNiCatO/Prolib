@@ -60,6 +60,10 @@ class PrologBookManager:
         return str(book_term)
     
     #___________________query the Prolog knowledge base____________________
+    def query_by_exact_title(self, title_keyword):
+        query = f'book_by_exact_title("{title_keyword}", Book)'
+        return self._collect_results(query)
+
     def query_by_title(self, title_keyword):
         query = f'book_by_title("{title_keyword}", Book)'
         return self._collect_results(query)
@@ -96,55 +100,56 @@ class PrologBookManager:
         return results
 
 
+if __name__ == "__main__":
+    book_data = {
+        "Title": "New Book",
+        "Authors": ["Alice", "Bob"],
+        "Publisher": "CoolPress",
+        "Published Date": "2024",
+        "Description": "Awesome read.",
+        "ISBN 10": "0000000000",
+        "ISBN 13": "9780000000000",
+        "Page Count": 350,
+        "Categories": ["Tech", "Programming"],
+        "Language": "en",
+        "Thumbnail URL": "http://example.com/thumb",
+        "Average Rating": 4.8,
+        "Ratings Count": 42,
+        "Preview Link": "http://example.com/preview",
+        "Info Link": "http://example.com/info"
+    }
 
-book_data = {
-    "Title": "New Book",
-    "Authors": ["Alice", "Bob"],
-    "Publisher": "CoolPress",
-    "Published Date": "2024",
-    "Description": "Awesome read.",
-    "ISBN 10": "0000000000",
-    "ISBN 13": "9780000000000",
-    "Page Count": 350,
-    "Categories": ["Tech", "Programming"],
-    "Language": "en",
-    "Thumbnail URL": "http://example.com/thumb",
-    "Average Rating": 4.8,
-    "Ratings Count": 42,
-    "Preview Link": "http://example.com/preview",
-    "Info Link": "http://example.com/info"
-}
+    pm = PrologBookManager("books.pl")
 
-pm = PrologBookManager("books.pl")
+    # Add book
+    pm.create(book_data)
+    print("Book added successfully.")
 
-# Add book
-pm.create(book_data)
-print("Book added successfully.")
+    # Get book
+    book = pm.get_by_isbn("9780000000000")
+    print("Fetched Book:", book)
 
-# Get book
-book = pm.get_by_isbn("9780000000000")
-print("Fetched Book:", book)
+    # Edit book
+    book_data["Title"] = "Updated Book Title"
+    pm.edit_by_isbn("9780000000000", book_data)
 
-# Edit book
-book_data["Title"] = "Updated Book Title"
-pm.edit_by_isbn("9780000000000", book_data)
+    # Remove book
+    pm.remove_by_isbn("9780000000000")
+    print("Book removed successfully.")
 
-# Remove book
-pm.remove_by_isbn("9780000000000")
-print("Book removed successfully.")
+    # 🔍 Query by Title
+    books_about_ai = pm.query_by_title("Python")
+    if books_about_ai:
+        # print amount of books found
+        print(f"Found {len(books_about_ai)} books")
 
-# 🔍 Query by Title
-books_about_ai = pm.query_by_title("Core Python Programming")
-if books_about_ai:
-    print("Book found")
+    # 🔍 Query by Author
+    books_by_knuth = pm.query_by_author("Wesley Chun")
+    if books_by_knuth:
+        print(f"Found {len(books_by_knuth)} books by the author")
 
-# 🔍 Query by Author
-books_by_knuth = pm.query_by_author("Wesley Chun")
-if books_by_knuth:
-    print("Book found")
+    # 🔍 Query by multiple fields
+    filtered = pm.query_custom({"Title": "Python in a Nutshell", "Author": "Alex Martelli"})
 
-# 🔍 Query by multiple fields
-filtered = pm.query_custom({"Title": "Python in a Nutshell", "Author": "Alex Martelli"})
-
-for book in filtered:
-    print("Book found")
+    for book in filtered:
+        print("Book found")
