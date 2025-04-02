@@ -64,17 +64,7 @@ def csv_to_prolog(csv_filename, plfile, skiplog):
 def add_helper_rules(plfile):
     plfile.write(
         """
-% Find a book by title
-book_by_title(Title, Book) :-
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
-        Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
-    Title = Title,
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
-                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
-\n""")
-def add_helper_rules(plfile):
-    plfile.write(
-        """
+
 % Find a book by ISBN-13
 book_by_isbn(ISBN, Book) :-
     book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
@@ -97,6 +87,17 @@ book_by_title(Query, Book) :-
     Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
+% Match by exact title (case-insensitive)
+book_by_exact_title(Query, Book) :-
+    downcase_atom(Query, LowerQuery),
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    downcase_atom(Title, LowerTitle),
+    LowerTitle = LowerQuery,
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
+
 % Match by author (partial, case-insensitive)
 book_by_author(Query, Book) :-
     book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
@@ -105,6 +106,28 @@ book_by_author(Query, Book) :-
     contains_ignore_case(Author, Query),
     Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
+% Match if a query string occurs in title or author (NER fallback)
+fallback_entity(Query, Book) :-
+    book(Title, Authors, _, _, _, _, _, _, _, _, _, _, _, _, _),
+    (contains_ignore_case(Title, Query) ;
+     (member(Author, Authors), contains_ignore_case(Author, Query))),
+    Book = book(Title, Authors, _, _, _, _, _, _, _, _, _, _, _, _, _).
+
+
+% Exact (whole string) match for title or author, case-insensitive
+fallback_exact_entity(Query, Book) :-
+    downcase_atom(Query, LowerQuery),
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    (   downcase_atom(Title, LowerTitle), LowerTitle = LowerQuery
+    ;   member(Author, Authors),
+        downcase_atom(Author, LowerAuthor),
+        LowerAuthor = LowerQuery
+    ),
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
 \n"""
     )
 
