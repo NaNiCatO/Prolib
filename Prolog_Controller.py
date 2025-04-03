@@ -1,4 +1,5 @@
 from pyswip import Prolog
+import ast
 
 class PrologBookManager:
     def __init__(self, pl_file="books.pl"):
@@ -6,11 +7,54 @@ class PrologBookManager:
         self.prolog.consult(pl_file)
 
 
+    def _term_string_to_dict(self, term_str):
+        if not term_str.startswith("book(") or not term_str.endswith(")"):
+            return {}
+
+        args_str = term_str[5:-1]
+
+        try:
+            parsed = ast.literal_eval(f"({args_str})")
+        except Exception as e:
+            print("Failed to parse term:", e)
+            return {}
+
+        if not isinstance(parsed, tuple) or len(parsed) != 15:
+            return {}
+
+        # Helper to decode bytes or keep value
+        def decode(val):
+            if isinstance(val, bytes):
+                return val.decode("utf-8")
+            elif isinstance(val, list):
+                return [decode(v) for v in val]
+            else:
+                return val
+
+        return {
+            "Title": decode(parsed[0]),
+            "Authors": decode(parsed[1]),
+            "Publisher": decode(parsed[2]),
+            "Published Date": decode(parsed[3]),
+            "Description": decode(parsed[4]),
+            "ISBN 10": decode(parsed[5]),
+            "ISBN 13": decode(parsed[6]),
+            "Page Count": decode(parsed[7]),
+            "Categories": decode(parsed[8]),
+            "Language": decode(parsed[9]),
+            "Thumbnail URL": decode(parsed[10]),
+            "Average Rating": decode(parsed[11]),
+            "Ratings Count": decode(parsed[12]),
+            "Preview Link": decode(parsed[13]),
+            "Info Link": decode(parsed[14])
+        }
+
     #___________________manipulate the Prolog knowledge base____________________
     def get_by_isbn(self, isbn13):
         query = f'book_by_isbn("{isbn13}", Book)'
         result = list(self.prolog.query(query))
-        return result[0]['Book'] if result else None
+        return self._term_string_to_dict(result[0]['Book']) if result else None
+
 
     def remove_by_isbn(self, isbn13):
         book = self.get_by_isbn(isbn13)
@@ -91,13 +135,16 @@ class PrologBookManager:
             'Categories, Lang, Thumb, Rating, RatingCount, Preview, Info)'
         )
         return self._collect_results(query)
-
+    
     def _collect_results(self, query):
         results = []
         for result in self.prolog.query(query):
-            term = result["Book"]
-            results.append(self._term_to_fact_string(term))
+            book = self._term_string_to_dict(result["Book"])
+            results.append(book)
         return results
+
+
+    
 
 
 if __name__ == "__main__":
