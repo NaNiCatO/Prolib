@@ -1,12 +1,14 @@
 from IntentClassifier_SBERT import IntentClassifier
 from NERExtractor import BookNERExtractor
 from Prolog_Controller import PrologBookManager
+from Decoder import Decoder
 
 class NLPPipeline:
     def __init__(self):
         self.intent_classifier = IntentClassifier()
         self.ner_extractor = BookNERExtractor()
         self.prolog_controller = PrologBookManager()
+        self.decoder = Decoder()
 
     def run(self, query: str):
         # Step 1: Intent Classification
@@ -51,13 +53,47 @@ class NLPPipeline:
             print("No matches found in KG or fallback.")
             return None
 
+        # step 4: Generate response if found
+        if not result:
+            print("No relevant information found.")
+            return None
+        if intent == "AUTHOR_INFO":
+            result = self.prolog_controller.query_by_author(result[0]["Authors"][0])
+            print(f"Author Info: {result}")
+        elif intent == "PUBLICATION_DATE":
+            result = self.prolog_controller.query_by_title(result[0]["Published Date"])
+            print(f"Publication Date: {result}")
+        elif intent == "BOOK_SUMMARY":
+            result = self.prolog_controller.query_by_title(result[0]["Description"])
+            print(f"Book Summary: {result}")
+        elif intent == "BOOK_RECOMMENDATION":
+            result = self.prolog_controller.query_by_title(result[0]["Title"])
+            print(f"Book Recommendation: {result}")
+        elif intent == "BOOK_THEMES":
+            result = self.prolog_controller.query_by_title(result[0]["Categories"])
+            print(f"Book Themes: {result}")
+        elif intent == "COMPARE_BOOKS":
+            result = self.prolog_controller.query_by_title(result[0]["Title"])
+            print(f"Compare Books: {result}")
+        else:
+            print("Unknown intent. No action taken.")
+            return None
 
+        # Step 4.5: Convert result to string
+        if isinstance(result, list):
+            result = ", ".join([str(r) for r in result])
+        elif isinstance(result, dict):
+            result = ", ".join([f"{k}: {v}" for k, v in result.items()])
+        elif isinstance(result, str):
+            result = result.strip()
+        else:
+            result = str(result)
+        print(f"Final Result: {result}")
         
-        return {
-            "result": result if len(result) != 0 else fallback,
-            
-        }
-
+        # Step 5: Generate response using Decoder
+        response = self.decoder.generate_response(query, intent, result)
+        print(f"Response: {response}")
+        return response
 
 # --- TESTING ---
 if __name__ == "__main__":
@@ -75,8 +111,9 @@ if __name__ == "__main__":
         print(f"\n🔍 Query: {query}")
         result = pipeline.run(query)
         print("_________")
-        if result:
-            print(f"Result: {len(result["result"])}")
-        else:
-            print("No relevant information found.")
+        print(f"Result: {result}")
+        # if result:
+        #     print(f"Result: {len(result["result"])}")
+        # else:
+        #     print("No relevant information found.")
 #         print(f"Result: {result}")
