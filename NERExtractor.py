@@ -1,16 +1,17 @@
 import spacy
 
 class BookNERExtractor:
-    def __init__(self, model="en_core_web_sm"):
+    def __init__(self, model="en_core_web_trf"):
         self.nlp = spacy.load(model)
 
     def extract_ner_entities(self, text):
         doc = self.nlp(text)
         entities = [
-            ent.text.strip()
+            {"text": ent.text.strip(), "label": ent.label_}
             for ent in doc.ents
-            if ent.label_ in {"WORK_OF_ART", "PERSON", "ORG"}
+            if ent.label_ in {"WORK_OF_ART", "PERSON", "ORG", "DATE"}
         ]
+        # print(f"Extracted NER entities: {entities}")
         return entities
 
     def extract_fallback_candidates(self, text):

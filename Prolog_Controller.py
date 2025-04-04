@@ -115,7 +115,11 @@ class PrologBookManager:
     def query_by_author(self, author_keyword):
         query = f'book_by_author("{author_keyword}", Book)'
         return self._collect_results(query)
-
+    
+    def query_by_publisher(self, publisher_keyword):
+        query = f'book_by_publisher("{publisher_keyword}", Book)'
+        return self._collect_results(query)
+    
     def query_custom(self, filters: dict):
         # Example: filters = {"Title": "Deep", "Author": "Goodfellow"}
         conditions = []
@@ -185,15 +189,22 @@ if __name__ == "__main__":
     print("Book removed successfully.")
 
     # 🔍 Query by Title
-    books_about_ai = pm.query_by_title("Python")
+    books_about_ai = pm.query_by_title("Triad")
     if books_about_ai:
         # print amount of books found
         print(f"Found {len(books_about_ai)} books")
+    else :
+        print("No books found")
 
     # 🔍 Query by Author
     books_by_knuth = pm.query_by_author("Wesley Chun")
     if books_by_knuth:
         print(f"Found {len(books_by_knuth)} books by the author")
+    
+    # 🔍 Query by Publisher
+    books_by_publisher = pm.query_by_publisher("Prentice Hall Professional")
+    if books_by_publisher:
+        print(f"Found {len(books_by_publisher)} books by the publisher")
 
     # 🔍 Query by multiple fields
     filtered = pm.query_custom({"Title": "Python in a Nutshell", "Author": "Alex Martelli"})

@@ -5,17 +5,32 @@ from IntentClassifier_SBERT import IntentClassifier
 response_generator = pipeline("text2text-generation", model="google/flan-t5-large")
 
 class Decoder:
+    def __init__(self):
+        self.need_summary = []
+
     @staticmethod
-    def generate_response(user_query, intent, data):
-        prompt = (
-            f"You are a helpful assistant answering user questions in a friendly, detailed way.\n\n"
-            f"User Query: {user_query}\n"
-            f"Intent: {intent}\n"
-            f"Relevant Information: {data}\n\n"
-            f"Now, write a natural and engaging response for the user:"
-        )
-        response = response_generator(prompt, max_length=1000)
+    def generate_response(user_query, data, intent, book_title):
+        # Doesnt need summary
+        if intent in ["AUTHOR_INFO", "PUBLICATION_DATE"]:
+            prompt = (
+                f"Q: {user_query} A:\n"
+                f"Q: {user_query} Provided Data : \n\n {data} A:\n"
+                f"Q: {user_query} Provided Data : \n\n {data} \nAnswer the question with the provided data A:\n"
+                f"Generate a summary of the provided data.  \n\n"
+            )
+        # Needs summary
+        else:
+            prompt = (
+                f"Q: {user_query} A:{book_title} is about\n"
+                f"Q: {user_query} Provided Data : \n\n {data} A:{book_title} is about\n"
+                f"Q: {user_query} Provided Data : \n\n {data} \nAnswer the question with the provided data A:{book_title} is about\n"
+                f"Generate a summary of the provided data.  \n\n"
+            )
+        
+        response = response_generator(prompt, max_length=5000)
         return response[0]['generated_text']
+
+
 
     @staticmethod
     def get_intent(user_query):

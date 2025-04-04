@@ -43,6 +43,16 @@ book_by_author(Query, Book) :-
     Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
+% Match by publisher (case-insensitive)
+book_by_publisher(Query, Book) :-
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    downcase_atom(Publisher, LowerPublisher),
+    downcase_atom(Query, LowerQuery),
+    contains_ignore_case(LowerPublisher, LowerQuery),
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
 % Match if a query string occurs in title or author (NER fallback)
 fallback_entity(Query, Book) :-
     book(Title, Authors, _, _, _, _, _, _, _, _, _, _, _, _, _),

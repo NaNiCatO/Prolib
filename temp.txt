@@ -1,0 +1,74 @@
+# Step 3: Prolog Query
+        found = False
+        result = None
+
+        for ent in spacy_entities:
+            ent_text = ent["text"]
+            # ent_label = ent["label"]
+
+            # try querying the Prolog database by title
+            result = self.prolog_controller.query_by_title(ent_text)
+            if result:
+                # print(f"Found in KG: {result[0]}")
+                found = True
+                break
+
+            # try querying the Prolog database by author
+            result = self.prolog_controller.query_by_author(ent_text)
+            if result:
+                # print(f"Found in KG: {result[0]}")
+                found = True
+                break
+
+            # try querying the Prolog database by publisher
+            result = self.prolog_controller.query_by_publisher(ent_text)
+            if result:
+                # print(f"Found in KG: {result[0]}")
+                found = True
+                break
+
+            # try fallback query for exact match
+            fallback = self.prolog_controller._collect_results(f'fallback_exact_entity("{ent_text}", Book)')
+            if fallback:
+                # print(f"Fallback matched: {fallback[0]}")
+                result = fallback
+                found = True
+                break
+
+        # if not found, try fallback candidates from chunks
+        if not found:
+            # print("Spacy missed or all entities failed. Falling back to chunks...")
+            for chunk in fallback_candidates:
+                fallback = self.prolog_controller._collect_results(f'fallback_exact_entity("{chunk}", Book)')
+                if fallback:
+                    # print(f"Chunk matched: '{chunk}' → {fallback[0]}")
+                    result = fallback
+                    found = True
+                    break
+
+        if not result:
+            # print("No relevant information found.")
+            return None
+
+
+"BOOK_RECOMMENDATION": [
+                "Recommend books similar to *Dune*.",
+                "What books are like *1984*?",
+                "Suggest some books if I liked *Brave New World*.",
+                "Give me books that are similar to *The Hunger Games*.",
+                "What are some alternatives to *Harry Potter*?"
+            ],
+            "BOOK_THEMES": [
+                "What are the main themes in *Dune*?",
+                "Tell me about the themes in *1984*.",
+                "What are the philosophical ideas in *Brave New World*?",
+                "Explain the central themes of *Frankenstein*.",
+                "What moral lessons are in *To Kill a Mockingbird*?"
+            ],
+            "COMPARE_BOOKS": [
+                "Compare *1984* and *Brave New World*.",
+                "How is *Dune* different from *Foundation*?",
+                "Which is better, *Lord of the Rings* or *Game of Thrones*?",
+                "What are the similarities between *Harry Potter* and *Percy Jackson*?",
+                "How do *Pride and Prejudice* and *Jane Eyre* compare?"
+            ]
