@@ -20,6 +20,7 @@ class NLPPipeline:
 
         # Step 2: Named Entity Recognition
         ner_result = self.ner_extractor.extract_all(query)
+        print(f"NER Result: {ner_result}")
         spacy_entities = ner_result["ner_entities"]
         print(f"Spacy Entities: {spacy_entities}")
         fallback_candidates = ner_result["fallback_candidates"]
@@ -99,7 +100,9 @@ if __name__ == "__main__":
         # "When was Farewell to Reality published?",
         # "Summarize Python.",
         # "Who wrote Python?",
-        "Can you give me a summary of Triad?",
+        # "Can you give me a summary of Triad?",
+        "Find book wrote by Orson Scott Card name Enchantment published in 2005.",
+        "Find a book wrote by Lisa Regan name Hush Little Girl published in 2021.",
     ]
 
     for query in test_queries:

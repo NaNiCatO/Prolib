@@ -11,7 +11,7 @@ class BookNERExtractor:
             for ent in doc.ents
             if ent.label_ in {"WORK_OF_ART", "PERSON", "ORG", "DATE"}
         ]
-        # print(f"Extracted NER entities: {entities}")
+        print(f"Extracted NER entities: {entities}")
         return entities
 
     def extract_fallback_candidates(self, text):
@@ -35,3 +35,15 @@ class BookNERExtractor:
             "ner_entities": self.extract_ner_entities(text),
             "fallback_candidates": self.extract_fallback_candidates(text)
         }
+
+if __name__ == "__main__":
+    extractor = BookNERExtractor()
+    text = ["Find book wrote by Orson Scott Card name Enchantment published in 2005.",
+        "Find a book wrote by Lisa Regan name Hush Little Girl published in 2021.",
+        ]
+    for t in text:
+        print(f"\n🔍 Query: {t}")
+        result = extractor.extract_all(t)
+        # print(f"NER Entities: {result['ner_entities']}")
+        print(f"Fallback Candidates: {result['fallback_candidates']}")
+
