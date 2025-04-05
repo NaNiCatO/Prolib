@@ -11,7 +11,7 @@ class BookNERExtractor:
             for ent in doc.ents
             if ent.label_ in {"WORK_OF_ART", "PERSON", "ORG", "DATE"}
         ]
-        print(f"Extracted NER entities: {entities}")
+        # print(f"Extracted NER entities: {entities}")
         return entities
 
     def extract_fallback_candidates(self, text):

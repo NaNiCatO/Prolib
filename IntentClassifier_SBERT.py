@@ -7,6 +7,20 @@ class IntentClassifier:
 
         # Define standard query templates
         self.intent_templates = {
+            "BOOK_TITLE": [
+                "find a book wrote by Orson Scott Card name Enchantment published in 2005.",
+                "What is the title of the book written by George Orwell about a dystopian future?",
+                "Which book features a young girl named Scout growing up in the American South?",
+                "Name the book that starts with 'Call me Ishmael.'",
+                "What’s the novel where Frodo takes the One Ring to Mordor?",
+                "Tell me the book that was written by Mary Shelley about a scientist who creates life.",
+                "Which book is set on the desert planet Arrakis?",
+                "What is the title of the novel that introduced Big Brother?",
+                "Find the book by F. Scott Fitzgerald that critiques the American Dream.",
+                "What book has the characters Elizabeth Bennet and Mr. Darcy?",
+                "Which novel tells the story of a creature pieced together from corpses?"
+                "Find a book wrote by Lisa Regan published in 2021."
+            ],
             "AUTHOR_INFO": [
                 "Who wrote the book *Dune*?",
                 "Tell me the author of *1984*.",
@@ -28,6 +42,18 @@ class IntentClassifier:
                 "Give me a short description of *Frankenstein*.",
                 "What is *The Lord of the Rings* about?",
                 "Tell me the plot of *To Kill a Mockingbird*."
+            ],
+            "RATING": [
+                "What is the average rating of *Dune*?",
+                "How many people rated *1984*?",
+                "Tell me the Goodreads rating for *The Great Gatsby*.",
+                "What’s the average score for *Pride and Prejudice*?",
+                "Give me the ratings count of *Frankenstein*.",
+                "How well-rated is *To Kill a Mockingbird*?",
+                "Can you show me how many ratings *The Hobbit* has?",
+                "What’s the reader rating for *The Catcher in the Rye*?",
+                "How popular is *The Lord of the Rings* based on ratings?",
+                "I’d like to know the average review score of *Brave New World*."
             ],
             # "BOOK_RECOMMENDATION": [
             #     "Recommend books similar to *Dune*.",

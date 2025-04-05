@@ -111,15 +111,72 @@ class PrologBookManager:
     def query_by_title(self, title_keyword):
         query = f'book_by_title("{title_keyword}", Book)'
         return self._collect_results(query)
+    
+    def query_by_exact_author(self, author_keyword):
+        query = f'book_by_exact_author("{author_keyword}", Book)'
+        return self._collect_results(query)
 
     def query_by_author(self, author_keyword):
         query = f'book_by_author("{author_keyword}", Book)'
         return self._collect_results(query)
     
+    def query_by_exact_publisher(self, publisher_keyword):
+        query = f'book_by_exact_publisher("{publisher_keyword}", Book)'
+        return self._collect_results(query)
+
     def query_by_publisher(self, publisher_keyword):
         query = f'book_by_publisher("{publisher_keyword}", Book)'
         return self._collect_results(query)
     
+    def query_by_publication_date(self, pub_date_keyword):
+        # reformat to YYYY-MM-DD
+        pub_date_keyword = pub_date_keyword.replace(".", "-").replace("/", "-")
+        query = f'book_by_pubdate("{pub_date_keyword}", Book)'
+        return self._collect_results(query)
+    
+    def query_by_before_publication_date(self, pub_date_keyword):
+        # reformat to YYYY-MM-DD
+        if len(pub_date_keyword) == 4:
+            pub_date_keyword += "-01-01"
+        elif len(pub_date_keyword) == 7:
+            pub_date_keyword += "-01"
+        elif len(pub_date_keyword) == 10:
+            pass
+        pub_date_keyword = pub_date_keyword.replace(".", "-").replace("/", "-")
+        full_date = pub_date_keyword
+        year = pub_date_keyword[:4]
+        # query full_date and year
+        query = f'book_before_date("{full_date}", Book)'
+        query2 = f'book_before_date("{year}", Book)'
+        # combine results
+        results = self._collect_results(query) + self._collect_results(query2)
+        # remove duplicates
+        unique_results = {self._make_fact_string(book): book for book in results}
+        results = list(unique_results.values())
+        return results
+
+    
+    def query_by_after_publication_date(self, pub_date_keyword):
+        # reformat to YYYY-MM-DD and handle year-only cases
+        if len(pub_date_keyword) == 4:
+            pub_date_keyword += "-01-01"
+        elif len(pub_date_keyword) == 7:
+            pub_date_keyword += "-01"
+        elif len(pub_date_keyword) == 10:
+            pass
+        pub_date_keyword = pub_date_keyword.replace(".", "-").replace("/", "-")
+        full_date = pub_date_keyword
+        year = pub_date_keyword[:4]
+        # query full_date and year
+        query = f'book_after_date("{full_date}", Book)'
+        query2 = f'book_after_date("{year}", Book)'
+        # combine results
+        results = self._collect_results(query) + self._collect_results(query2)
+        # remove duplicates
+        unique_results = {self._make_fact_string(book): book for book in results}
+        results = list(unique_results.values())
+        return results
+
     def query_custom(self, filters: dict):
         # Example: filters = {"Title": "Deep", "Author": "Goodfellow"}
         conditions = []
@@ -211,3 +268,11 @@ if __name__ == "__main__":
 
     for book in filtered:
         print("Book found")
+
+    books_by_pubdate = pm.query_by_publication_date("2023")
+    if books_by_pubdate:
+        print(f"Found {len(books_by_pubdate)} books published in 2023")
+
+    books_before_2020 = pm.query_by_after_publication_date("2020-01-01")
+    if books_before_2020:
+        print(f"Found {len(books_before_2020)} books published before 2020")

@@ -11,7 +11,7 @@ class Decoder:
     @staticmethod
     def generate_response(user_query, data, intent, book_title):
         # Doesnt need summary
-        if intent in ["AUTHOR_INFO", "PUBLICATION_DATE"]:
+        if intent in ["BOOK_TITLE", "AUTHOR_INFO", "PUBLICATION_DATE"]:
             prompt = (
                 f"Q: {user_query} A:\n"
                 f"Q: {user_query} Provided Data : \n\n {data} A:\n"

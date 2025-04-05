@@ -33,7 +33,6 @@ book_by_exact_title(Query, Book) :-
     Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
-
 % Match by author (partial, case-insensitive)
 book_by_author(Query, Book) :-
     book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
@@ -43,7 +42,18 @@ book_by_author(Query, Book) :-
     Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
-% Match by publisher (case-insensitive)
+% Exact (case-insensitive) match by author name
+book_by_exact_author(Query, Book) :-
+    downcase_atom(Query, LowerQuery),
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    member(Author, Authors),
+    downcase_atom(Author, LowerAuthor),
+    LowerAuthor = LowerQuery,
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
+% Match by publisher (partial, case-insensitive)
 book_by_publisher(Query, Book) :-
     book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
@@ -52,6 +62,58 @@ book_by_publisher(Query, Book) :-
     contains_ignore_case(LowerPublisher, LowerQuery),
     Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
+% Exact (case-insensitive) match by publisher
+book_by_exact_publisher(Query, Book) :-
+    downcase_atom(Query, LowerQuery),
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    downcase_atom(Publisher, LowerPublisher),
+    LowerPublisher = LowerQuery,
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
+
+% Query books by published date (full or year-only match)
+book_by_pubdate(Query, Book) :-
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    (   downcase_atom(PubDate, LowerDate),
+        downcase_atom(Query, LowerQuery),
+        (   LowerDate = LowerQuery                  % exact full-date match
+        ;   sub_string(LowerDate, 0, 4, _, LowerQuery)  % year match: first 4 chars
+        )
+    ),
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
+
+:- use_module(library(date)).  % needed for parse_time/2 and comparison
+
+% Convert string to time stamp
+safe_parse_date(String, Timestamp) :-
+    catch(parse_time(String, iso_8601, Timestamp), _, fail).
+
+% Find books published before a given date
+book_before_date(Query, Book) :-
+    safe_parse_date(Query, QueryTS),
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    safe_parse_date(PubDate, BookTS),
+    BookTS < QueryTS,
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
+% Find books published after a given date
+book_after_date(Query, Book) :-
+    safe_parse_date(Query, QueryTS),
+    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+         Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
+    safe_parse_date(PubDate, BookTS),
+    BookTS > QueryTS,
+    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+                Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
+
 
 % Match if a query string occurs in title or author (NER fallback)
 fallback_entity(Query, Book) :-
