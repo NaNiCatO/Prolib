@@ -44,7 +44,7 @@ class PrologBookManager:
             "Language": decode(parsed[9]),
             "Thumbnail URL": decode(parsed[10]),
             "Average Rating": decode(parsed[11]),
-            "Ratings Count": decode(parsed[12]),
+            "People Rated": decode(parsed[12]),
             "Preview Link": decode(parsed[13]),
             "Info Link": decode(parsed[14])
         }

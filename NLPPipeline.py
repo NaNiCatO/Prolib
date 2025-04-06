@@ -34,6 +34,7 @@ def merge_books_by_isbn(result_lists):
             isbn = extract_isbn(book)
             if isbn and isbn not in merged:
                 merged[isbn] = book
+
     return list(merged.values())
 
 
@@ -51,7 +52,7 @@ class NLPPipeline:
         print(f"[Intent] {intent}" + f" (Score: {score:.4f})")
         if score < 0.4:
             # print("Low confidence in intent classification.")
-            return None
+            return "Low confidence in intent classification."
 
         # Step 2: Named Entity Recognition
         ner_result = self.ner_extractor.extract_all(query)
@@ -88,12 +89,12 @@ class NLPPipeline:
                         if pos != -1 and query[pos-6:pos-1] == "after":
                             result = self.prolog_controller.query_by_after_publication_date(entity["text"])
                             if result:
-                                print(f"Hit: {entity['text']} ({"query_by_after_publication_date"})")
+                                print(f"Hit: {entity['text']} (query_by_after_publication_date)")
                                 all_result_lists.append(result)
                         elif pos != -1 and query[pos-7:pos-1] == "before":
                             result = self.prolog_controller.query_by_before_publication_date(entity["text"])
                             if result:
-                                print(f"Hit: {entity['text']} ({"query_by_before_publication_date"})")
+                                print(f"Hit: {entity['text']} (query_by_before_publication_date)")
                                 all_result_lists.append(result)
                         else:
                             result = query_func(entity["text"])
@@ -124,12 +125,12 @@ class NLPPipeline:
                             if pos != -1 and query[pos-6:pos-1] == "after":
                                 result = self.prolog_controller.query_by_after_publication_date(candidate)
                                 if result:
-                                    print(f"Hit: {candidate} ({"query_by_after_publication_date"})")
+                                    print(f"Hit: {candidate} (query_by_after_publication_date)")
                                     fallback_results.append(result)
                             elif pos != -1 and query[pos-7:pos-1] == "before":
                                 result = self.prolog_controller.query_by_before_publication_date(candidate)
                                 if result:
-                                    print(f"Hit: {candidate} ({"query_by_before_publication_date"})")
+                                    print(f"Hit: {candidate} (query_by_before_publication_date)")
                                     fallback_results.append(result)
                             else:
                                 result = query_func(candidate)
@@ -141,7 +142,6 @@ class NLPPipeline:
                         if result:
                             print(f"Hit: {candidate} ({query_func.__name__})")
                             fallback_results.append(result)
-            
             final_results = merge_books_by_isbn(fallback_results)
 
 
@@ -166,7 +166,9 @@ class NLPPipeline:
             result = final_results[0]["Description"]
             # print(f"Book Summary: {result}")
         elif intent == "RATING":
-            result = f"Average Rating: {final_results[0]["Average Rating"]}, Ratings Count: {final_results[0]["Ratings Count"]}"
+            Average_Rating = final_results[0]["Average Rating"]
+            Ratings_Count = final_results[0]["People Rated"]
+            result = f"Average Rating is {Average_Rating} and Ratings Count is {Ratings_Count}"
             # print(f"Rating: {result}")
         else:
             print("Unknown intent. No action taken.")
@@ -183,11 +185,10 @@ class NLPPipeline:
         else:
             result = str(result)
         # print(f"Final Result: {result}")
-
+        
         # Step 5: Generate response using Decoder
         response = self.decoder.generate_response(query, result, intent, book_name)
         print(f"Query: {query}")
-        print(f"data: {result}")
         # print(f"Response: {response}")
         return response
 
@@ -202,6 +203,7 @@ if __name__ == "__main__":
         "Find book wrote by Orson Scott Card name Enchantment published in 2005.",
         "Find a book wrote by Lisa Regan and published in 2021.",
         "How many people rated Core Python Programming?",
+        "Can you summarize Further Pure Mathematics?",
     ]
 
     for query in test_queries:

@@ -36,24 +36,25 @@ class IntentClassifier:
                 "Give me the release year of *The Hobbit*."
             ],
             "BOOK_SUMMARY": [
-                "Summarize the *Computer Aided Manufacturing*.",
+                "Summarize the *Excel HSC Mathematics*.",
                 "Summarize the book *Dune*.",
-                "Can you give me a summary of *1984*?",
-                "Give me a short description of *Frankenstein*.",
+                "Can you give me a summary of *Harry Potter*?",
+                "Give me a short description of *Brave New World*.",
                 "What is *The Lord of the Rings* about?",
-                "Tell me the plot of *To Kill a Mockingbird*."
+                "Tell me the plot of *Brave New World*.",
+                "Can you summarize *Brave New World*?",
             ],
             "RATING": [
                 "What is the average rating of *Dune*?",
                 "How many people rated *1984*?",
                 "Tell me the Goodreads rating for *The Great Gatsby*.",
-                "What’s the average score for *Pride and Prejudice*?",
+                "What's the average score for *Pride and Prejudice*?",
                 "Give me the ratings count of *Frankenstein*.",
                 "How well-rated is *To Kill a Mockingbird*?",
                 "Can you show me how many ratings *The Hobbit* has?",
-                "What’s the reader rating for *The Catcher in the Rye*?",
+                "What's the reader rating for *The Catcher in the Rye*?",
                 "How popular is *The Lord of the Rings* based on ratings?",
-                "I’d like to know the average review score of *Brave New World*."
+                "I'd like to know the average review score of *Brave New World*."
             ],
             # "BOOK_RECOMMENDATION": [
             #     "Recommend books similar to *Dune*.",
@@ -111,7 +112,8 @@ if __name__ == "__main__":
         "Summarize The Hobbit.",
         "Recommend books similar to Brave New World.",
         "What are the themes of Frankenstein?",
-        "Compare 1984 and Brave New World."
+        "Compare 1984 and Brave New World.",
+        "Summarize Excel HSC Mathematics.",
     ]
 
     for query in test_queries:
