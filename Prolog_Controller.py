@@ -197,6 +197,25 @@ class PrologBookManager:
         )
         return self._collect_results(query)
     
+
+    def recommend_similar_books_sorted(self, reference_book, limit=5):
+        # Use _format_arg to safely format each field
+        args = [self._format_arg(reference_book[key]) for key in reference_book]
+        book_term = f"book({', '.join(args)})"
+        
+        query = f'recommend_similar_books_with_score({book_term}, Score, Book)'
+
+        results = []
+        for result in self.prolog.query(query):
+            book = self._term_string_to_dict(result["Book"])
+            score = result["Score"]
+            results.append((score, book))
+
+        results.sort(key=lambda x: -x[0])  # Sort by descending similarity score
+        return [book for score, book in results[:limit]]
+
+
+    
     def _collect_results(self, query):
         results = []
         for result in self.prolog.query(query):
@@ -276,3 +295,9 @@ if __name__ == "__main__":
     books_before_2020 = pm.query_by_after_publication_date("2020-01-01")
     if books_before_2020:
         print(f"Found {len(books_before_2020)} books published before 2020")
+
+
+    book = pm.get_by_isbn("9781449379322")
+    top_5_similar = pm.recommend_similar_books_sorted(book)
+    for b in top_5_similar:
+        print("Recommended:", b["Title"])

@@ -2,7 +2,6 @@ from IntentClassifier_SBERT import IntentClassifier
 from NERExtractor import BookNERExtractor
 from Prolog_Controller import PrologBookManager
 from Decoder import Decoder
-from functools import reduce
 
 
 def contains_digit(s):
@@ -151,41 +150,48 @@ class NLPPipeline:
             print("No relevant information found.")
             return None
         
+
+
         # Step 4: Intent-specific result retrieval
         # print(intent)
-        if intent == "BOOK_TITLE":
-            result = final_results[0]["Title"]
-            # print(f"Book Title: {result}")
-        elif intent == "AUTHOR_INFO":
-            result = final_results[0]["Authors"]
-            # print(f"Author Info: {result}")
-        elif intent == "PUBLICATION_DATE":
-            result = final_results[0]["Published Date"]
-            # print(f"Publication Date: {result}")
-        elif intent == "BOOK_SUMMARY":
-            result = final_results[0]["Description"]
-            # print(f"Book Summary: {result}")
-        elif intent == "RATING":
-            result = f"Average Rating: {final_results[0]["Average Rating"]}, Ratings Count: {final_results[0]["Ratings Count"]}"
-            # print(f"Rating: {result}")
+        if intent == "BOOK_RECOMMENDATION":
+            top_5_similar = self.prolog_controller.recommend_similar_books_sorted(final_results[0])
+            response = f"Top 5 similar books with {final_results[0]["Title"]}: \n- " + "- ".join([book["Title"]+"\n" for book in top_5_similar])
         else:
-            print("Unknown intent. No action taken.")
-            return None
-        book_name = final_results[0]["Title"]
+            # Step 4.1: Check if the intent is in the list of intents
+            if intent == "BOOK_TITLE":
+                result = final_results[0]["Title"]
+                # print(f"Book Title: {result}")
+            elif intent == "AUTHOR_INFO":
+                result = final_results[0]["Authors"]
+                # print(f"Author Info: {result}")
+            elif intent == "PUBLICATION_DATE":
+                result = final_results[0]["Published Date"]
+                # print(f"Publication Date: {result}")
+            elif intent == "BOOK_SUMMARY":
+                result = final_results[0]["Description"]
+                # print(f"Book Summary: {result}")
+            elif intent == "RATING":
+                result = f"Average Rating: {final_results[0]["Average Rating"]}, Ratings Count: {final_results[0]["Ratings Count"]}"
+                # print(f"Rating: {result}")
+            else:
+                print("Unknown intent. No action taken.")
+                return None
+            book_name = final_results[0]["Title"]
 
-        # Step 4.5: Convert result to string
-        if isinstance(result, list):
-            result = ", ".join([str(r) for r in result])
-        elif isinstance(result, dict):
-            result = ", ".join([f"{k}: {v}" for k, v in result.items()])
-        elif isinstance(result, str):
-            result = result.strip()
-        else:
-            result = str(result)
-        # print(f"Final Result: {result}")
+            # Step 4.5: Convert result to string
+            if isinstance(result, list):
+                result = ", ".join([str(r) for r in result])
+            elif isinstance(result, dict):
+                result = ", ".join([f"{k}: {v}" for k, v in result.items()])
+            elif isinstance(result, str):
+                result = result.strip()
+            else:
+                result = str(result)
+            # print(f"Final Result: {result}")
 
-        # Step 5: Generate response using Decoder
-        response = self.decoder.generate_response(query, result, intent, book_name)
+            # Step 5: Generate response using Decoder
+            response = self.decoder.generate_response(query, result, intent, book_name)
         print(f"Query: {query}")
         print(f"data: {result}")
         # print(f"Response: {response}")
@@ -195,6 +201,7 @@ class NLPPipeline:
 if __name__ == "__main__":
     pipeline = NLPPipeline()
     test_queries = [
+        "give me a book name that worte by Sriram Pemmaraju",
         "Who wrote Python?",
         "When was Farewell to Reality published?",
         "Summarize Python.",
@@ -202,6 +209,7 @@ if __name__ == "__main__":
         "Find book wrote by Orson Scott Card name Enchantment published in 2005.",
         "Find a book wrote by Lisa Regan and published in 2021.",
         "How many people rated Core Python Programming?",
+        "Can you recommend some books that similar themes to Python?",
     ]
 
     for query in test_queries:
