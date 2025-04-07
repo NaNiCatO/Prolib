@@ -81,7 +81,13 @@ class PrologBookManager:
 
     def create(self, book_dict):
         fact = "book(" + ", ".join(self._format_arg(v) for v in book_dict.values()) + ")"
-        self.prolog.assertz(fact)
+        # return status
+        try:
+            self.prolog.assertz(fact)  # ✅ use assertz to add the fact
+            return True
+        except Exception as e:
+            print("Failed to add book:", e)
+            return False
 
     def edit_by_isbn(self, isbn13, new_data):
         if self.remove_by_isbn(isbn13):
