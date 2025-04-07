@@ -44,7 +44,7 @@ class PrologBookManager:
             "Language": decode(parsed[9]),
             "Thumbnail URL": decode(parsed[10]),
             "Average Rating": decode(parsed[11]),
-            "People Rated": decode(parsed[12]),
+            "Ratings Count": decode(parsed[12]),
             "Preview Link": decode(parsed[13]),
             "Info Link": decode(parsed[14])
         }
@@ -241,7 +241,7 @@ if __name__ == "__main__":
         "Language": "en",
         "Thumbnail URL": "http://example.com/thumb",
         "Average Rating": 4.8,
-        "Ratings Count": 42,
+        "People Rated": 42,
         "Preview Link": "http://example.com/preview",
         "Info Link": "http://example.com/info"
     }

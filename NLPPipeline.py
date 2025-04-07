@@ -44,23 +44,8 @@ class NLPPipeline:
         self.prolog_controller = PrologBookManager()
         self.decoder = Decoder()
 
-    def run(self, query: str):
-        # Step 1: Intent Classification
-        intent, score = self.intent_classifier.classify(query)
-        print(f"[Intent] {intent}" + f" (Score: {score:.4f})")
-        if score < 0.4:
-            # print("Low confidence in intent classification.")
-            return None
-
-        # Step 2: Named Entity Recognition
-        ner_result = self.ner_extractor.extract_all(query)
-        print(f"NER Result: {ner_result}")
-        spacy_entities = ner_result["ner_entities"]
-        # print(f"Spacy Entities: {spacy_entities}")
-        fallback_candidates = ner_result["fallback_candidates"]
-        # print(f"Fallback Candidates: {fallback_candidates}")
-        
-        #  Step 3: Query Prolog Knowledge Base
+    def Query_Prolog_Knowledge_Base(self, query: str, spacy_entities: list, fallback_candidates: list):
+        # Query Prolog Knowledge Base
         query_list_Spacy = [
             self.prolog_controller.query_by_exact_title,
             self.prolog_controller.query_by_author,
@@ -143,17 +128,9 @@ class NLPPipeline:
             
             final_results = merge_books_by_isbn(fallback_results)
 
+        return final_results
 
-        print(f"Books found: {len(final_results)}")
-        # print(f"final_results: {final_results}")
-        if not final_results:
-            print("No relevant information found.")
-            return None
-        
-
-
-        # Step 4: Intent-specific result retrieval
-        # print(intent)
+    def Intent_specific_result_retrieval_and_Generate_respons(self, intent: str, final_results: list):
         if intent == "BOOK_RECOMMENDATION":
             top_5_similar = self.prolog_controller.recommend_similar_books_sorted(final_results[0])
             response = f"Top 5 similar books with {final_results[0]["Title"]}: \n- " + "- ".join([book["Title"]+"\n" for book in top_5_similar])
@@ -172,11 +149,12 @@ class NLPPipeline:
                 result = final_results[0]["Description"]
                 # print(f"Book Summary: {result}")
             elif intent == "RATING":
+                print(final_results[0])
                 result = f"Average Rating: {final_results[0]["Average Rating"]}, Ratings Count: {final_results[0]["Ratings Count"]}"
                 # print(f"Rating: {result}")
             else:
                 print("Unknown intent. No action taken.")
-                return None
+                return "Unknown intent. No action taken."
             book_name = final_results[0]["Title"]
 
             # Step 4.5: Convert result to string
@@ -188,14 +166,46 @@ class NLPPipeline:
                 result = result.strip()
             else:
                 result = str(result)
-            # print(f"Final Result: {result}")
+            # print(f"Result: {result}")
 
             # Step 5: Generate response using Decoder
             response = self.decoder.generate_response(query, result, intent, book_name)
+        return response
+
+    def run(self, query: str):
+        # Step 1: Intent Classification
+        intent, score = self.intent_classifier.classify(query)
+        print(f"[Intent] {intent}" + f" (Score: {score:.4f})")
+        if score < 0.4:
+            # print("Low confidence in intent classification.")
+            return "Low confidence in intent classification."
+
+        # Step 2: Named Entity Recognition
+        ner_result = self.ner_extractor.extract_all(query)
+        print(f"NER Result: {ner_result}")
+        spacy_entities = ner_result["ner_entities"]
+        # print(f"Spacy Entities: {spacy_entities}")
+        fallback_candidates = ner_result["fallback_candidates"]
+        # print(f"Fallback Candidates: {fallback_candidates}")
+        
+        # Step 3: Query Prolog Knowledge Base
+        final_results = self.Query_Prolog_Knowledge_Base(query, spacy_entities, fallback_candidates)
+
+        print(f"Books found: {len(final_results)}")
+        # print(f"final_results: {final_results}")
+        if not final_results:
+            print("No relevant information found.")
+            return "No relevant information found."
+
+        # Step 4: Intent-specific result retrieval and response generation
+        # print(intent)
+        response = self.Intent_specific_result_retrieval_and_Generate_respons(intent, final_results)
+        
+
         print(f"Query: {query}")
-        print(f"data: {result}")
         # print(f"Response: {response}")
         return response
+
 
 # --- TESTING ---
 if __name__ == "__main__":
