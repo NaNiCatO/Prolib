@@ -11,7 +11,9 @@ r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
 # --- Data Models ---
 class BookUpdate(BaseModel):
-    Fav: Optional[bool] = None
+    isFavorite: Optional[bool] = None
+    isCustomBook: Optional[bool] = None
+
 
 class Book(BaseModel):
     id: str
@@ -76,7 +78,7 @@ def get_all_books():
         data = r.hgetall(key)
         data["Authors"] = json.loads(data["Authors"])
         data["Categories"] = json.loads(data["Categories"])
-        data["Fav"] = data["Fav"] == "True"
+        data["isFavorite"] = data["isFavorite"] == "True"
         books.append(Book(id=key.split(":")[1], data=data))
     return books
 
@@ -87,7 +89,9 @@ def update_book(book_id: str, update: BookUpdate):
         raise HTTPException(status_code=404, detail="Book not found")
 
     # Update only fields that are set
-    if update.Fav is not None:
-        r.hset(key, "Fav", str(update.Fav))
+    if update.isFavorite is not None:
+        r.hset(key, "isFavorite", str(update.Fav))
+    if update.isCustomBook is not None:
+        r.hset(key, "isCustomBook", str(update.isCustomBook))
 
     return {"message": "Book updated successfully"}
