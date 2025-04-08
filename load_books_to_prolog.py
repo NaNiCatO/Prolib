@@ -36,13 +36,23 @@ def is_valid_book(row, min_pages=50, require_rating=True, language="en"):
         return False
     return True
 
-def csv_to_prolog(csv_filename, plfile, skiplog):
+def csv_to_prolog(csv_filename, plfile, skiplog, seen_books):
     with open(csv_filename, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if not is_valid_book(row):
-                skiplog.write(f"Skipped: {row.get('Title', 'Unknown')} in {csv_filename}\n")
+                skiplog.write(f"Skipped (invalid): {row.get('Title', 'Unknown')} in {csv_filename}\n")
                 continue
+
+            # Generate deduplication key
+            isbn_key = row['ISBN 13'].strip() if row['ISBN 13'].strip() != "N/A" else row['ISBN 10'].strip()
+            if not isbn_key or isbn_key == "N/A":
+                isbn_key = f"{row['Title'].strip().lower()}::{row['Authors'].strip().lower()}"  # fallback
+
+            if isbn_key in seen_books:
+                skiplog.write(f"Skipped (duplicate): {row.get('Title', 'Unknown')} in {csv_filename}\n")
+                continue
+            seen_books.add(isbn_key)
 
             fact = f"book({sanitize(row['Title'])}, " \
                    f"{sanitize_list(row['Authors'])}, " \
@@ -60,6 +70,7 @@ def csv_to_prolog(csv_filename, plfile, skiplog):
                    f"{sanitize(row['Preview Link'])}, " \
                    f"{sanitize(row['Info Link'])}).\n"
             plfile.write(fact)
+
 
 def add_helper_rules(plfile):
     plfile.write(
@@ -257,7 +268,7 @@ recommend_similar_books_with_score(
 
 
 
-
+seen_books = set()
 
 # Write to a single .pl file
 with open("books.pl", "w", encoding="utf-8") as plfile, open("skipped_books.log", "w", encoding="utf-8") as skiplog:
@@ -267,6 +278,6 @@ with open("books.pl", "w", encoding="utf-8") as plfile, open("skipped_books.log"
         csv_file = f"test_data/{genre}_books.csv"
         if os.path.exists(csv_file):
             print(f"Processing: {csv_file}")
-            csv_to_prolog(csv_file, plfile, skiplog)
+            csv_to_prolog(csv_file, plfile, skiplog, seen_books)
         else:
             print(f"Missing: {csv_file}")
