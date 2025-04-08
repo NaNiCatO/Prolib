@@ -19,7 +19,7 @@ class PrologBookManager:
             print("Failed to parse term:", e)
             return {}
 
-        if not isinstance(parsed, tuple) or len(parsed) != 15:
+        if not isinstance(parsed, tuple) or len(parsed) != 16:
             return {}
 
         # Helper to decode bytes or keep value
@@ -32,32 +32,33 @@ class PrologBookManager:
                 return val
 
         return {
-            "Title": decode(parsed[0]),
-            "Authors": decode(parsed[1]),
-            "Publisher": decode(parsed[2]),
-            "Published Date": decode(parsed[3]),
-            "Description": decode(parsed[4]),
-            "ISBN 10": decode(parsed[5]),
-            "ISBN 13": decode(parsed[6]),
-            "Page Count": decode(parsed[7]),
-            "Categories": decode(parsed[8]),
-            "Language": decode(parsed[9]),
-            "Thumbnail URL": decode(parsed[10]),
-            "Average Rating": decode(parsed[11]),
-            "Ratings Count": decode(parsed[12]),
-            "Preview Link": decode(parsed[13]),
-            "Info Link": decode(parsed[14])
+            "Id": decode(parsed[0]),
+            "Title": decode(parsed[1]),
+            "Authors": decode(parsed[2]),
+            "Publisher": decode(parsed[3]),
+            "Published Date": decode(parsed[4]),
+            "Description": decode(parsed[5]),
+            "ISBN 10": decode(parsed[6]),
+            "ISBN 13": decode(parsed[7]),
+            "Page Count": decode(parsed[8]),
+            "Categories": decode(parsed[9]),
+            "Language": decode(parsed[10]),
+            "Thumbnail URL": decode(parsed[11]),
+            "Average Rating": decode(parsed[12]),
+            "Ratings Count": decode(parsed[13]),
+            "Preview Link": decode(parsed[14]),
+            "Info Link": decode(parsed[15])
         }
 
     #___________________manipulate the Prolog knowledge base____________________
-    def get_by_isbn(self, isbn13):
-        query = f'book_by_isbn("{isbn13}", Book)'
+    def get_by_id(self, id):
+        query = f'book_by_id("{id}", Book)'
         result = list(self.prolog.query(query))
         return self._term_string_to_dict(result[0]['Book']) if result else None
 
 
-    def remove_by_isbn(self, isbn13):
-        book = self.get_by_isbn(isbn13)
+    def remove_by_id(self, id):
+        book = self.get_by_id(id)
         if not book:
             return False
         fact = self._term_to_fact_string(book)
@@ -88,8 +89,8 @@ class PrologBookManager:
             print("Failed to add book:", e)
             return False
 
-    def edit_by_isbn(self, isbn13, new_data):
-        if self.remove_by_isbn(isbn13):
+    def edit_by_id(self, id, new_data):
+        if self.remove_by_id(id):
             self.create(new_data)
             return True
         return False
@@ -109,6 +110,15 @@ class PrologBookManager:
         return str(book_term)
     
     #___________________query the Prolog knowledge base____________________
+    def get_all_books(self):
+        query = (
+            "book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount, "
+            "Categories, Lang, Thumb, Rating, RatingCount, Preview, Info), "
+            "Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount, "
+            "Categories, Lang, Thumb, Rating, RatingCount, Preview, Info)"
+        )
+        return self._collect_results(query)
+
     def query_by_exact_title(self, title_keyword):
         query = f'book_by_exact_title("{title_keyword}", Book)'
         return self._collect_results(query)
@@ -194,10 +204,10 @@ class PrologBookManager:
 
         # Full query body
         query = (
-            f'book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount, '
+            f'book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount, '
             f'Categories, Lang, Thumb, Rating, RatingCount, Preview, Info), ' +
             ", ".join(conditions) + ', ' +
-            'Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount, '
+            'Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount, '
             'Categories, Lang, Thumb, Rating, RatingCount, Preview, Info)'
         )
         return self._collect_results(query)
@@ -234,6 +244,7 @@ class PrologBookManager:
 
 if __name__ == "__main__":
     book_data = {
+        "Id": "9780000000000",
         "Title": "New Book",
         "Authors": ["Alice", "Bob"],
         "Publisher": "CoolPress",
@@ -258,15 +269,15 @@ if __name__ == "__main__":
     print("Book added successfully.")
 
     # Get book
-    book = pm.get_by_isbn("9780000000000")
+    book = pm.get_by_id("9780000000000")
     print("Fetched Book:", book)
 
     # Edit book
     book_data["Title"] = "Updated Book Title"
-    pm.edit_by_isbn("9780000000000", book_data)
+    pm.edit_by_id("9780000000000", book_data)
 
     # Remove book
-    pm.remove_by_isbn("9780000000000")
+    pm.remove_by_id("9780000000000")
     print("Book removed successfully.")
 
     # 🔍 Query by Title
@@ -302,7 +313,8 @@ if __name__ == "__main__":
         print(f"Found {len(books_before_2020)} books published before 2020")
 
 
-    book = pm.get_by_isbn("9781449379322")
+    book = pm.get_by_id("60f2a228-8db1-4785-87ee-d98937bc2d2d")
+    print("Book for recommendation:", book["Title"])
     top_5_similar = pm.recommend_similar_books_sorted(book)
     for b in top_5_similar:
         print("Recommended:", b["Title"])

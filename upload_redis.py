@@ -2,6 +2,7 @@ import redis
 import uuid
 import json
 from pyswip import Prolog
+from Prolog_Controller import PrologBookManager
 
 # Connect to Redis
 r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
@@ -27,15 +28,19 @@ def clear_existing_books(redis_conn, pattern="book:*"):
 clear_existing_books(r)
 
 # STEP 2: Connect to Prolog
-prolog = Prolog()
-prolog.consult("books.pl")  # Your Prolog file with book facts
+prolog = PrologBookManager("books.pl")
+results = prolog.get_all_books()
 
 # STEP 3: Read and Upload
-for result in prolog.query("book(Title, Authors, Publisher, PublishedDate, Description, ISBN10, ISBN13, PageCount, Categories, Language, Thumbnail, AvgRating, PeopleRated, PreviewLink, InfoLink)"):
+for result in results:
     # Generate unique ID
-    book_id = str(uuid.uuid4())
-    redis_key = f"book:{book_id}"
-
+    try:
+        redis_key = f"book:{result["Id"]}"
+    except KeyError:
+        print(result)
+        continue
+    #remove 'Id' from result
+    result.pop("Id", None)
     # Add 'isFavorite' and 'isCustomBook'
     result["isFavorite"] = False
     result["isCustomBook"] = False
