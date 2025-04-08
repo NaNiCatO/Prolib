@@ -72,12 +72,12 @@ class NLPPipeline:
                         if pos != -1 and query[pos-6:pos-1] == "after":
                             result = self.prolog_controller.query_by_after_publication_date(entity["text"])
                             if result:
-                                print(f"Hit: {entity['text']} ({"query_by_after_publication_date"})")
+                                print(f"Hit: {entity['text']} ({'query_by_after_publication_date'})")
                                 all_result_lists.append(result)
                         elif pos != -1 and query[pos-7:pos-1] == "before":
                             result = self.prolog_controller.query_by_before_publication_date(entity["text"])
                             if result:
-                                print(f"Hit: {entity['text']} ({"query_by_before_publication_date"})")
+                                print(f"Hit: {entity['text']} ({'query_by_before_publication_date'})")
                                 all_result_lists.append(result)
                         else:
                             result = query_func(entity["text"])
@@ -108,12 +108,12 @@ class NLPPipeline:
                             if pos != -1 and query[pos-6:pos-1] == "after":
                                 result = self.prolog_controller.query_by_after_publication_date(candidate)
                                 if result:
-                                    print(f"Hit: {candidate} ({"query_by_after_publication_date"})")
+                                    print(f"Hit: {candidate} ({'query_by_after_publication_date'})")
                                     fallback_results.append(result)
                             elif pos != -1 and query[pos-7:pos-1] == "before":
                                 result = self.prolog_controller.query_by_before_publication_date(candidate)
                                 if result:
-                                    print(f"Hit: {candidate} ({"query_by_before_publication_date"})")
+                                    print(f"Hit: {candidate} ({'query_by_before_publication_date'})")
                                     fallback_results.append(result)
                             else:
                                 result = query_func(candidate)
@@ -133,7 +133,7 @@ class NLPPipeline:
     def Intent_specific_result_retrieval_and_Generate_respons(self, intent: str, final_results: list):
         if intent == "BOOK_RECOMMENDATION":
             top_5_similar = self.prolog_controller.recommend_similar_books_sorted(final_results[0])
-            response = f"Top 5 similar books with {final_results[0]["Title"]}: \n- " + "- ".join([book["Title"]+"\n" for book in top_5_similar])
+            response = f"Top 5 similar books with {final_results[0]['Title']}: \n- " + "- ".join([book['Title']+'\n' for book in top_5_similar])
             #top5 book ids
             book_ID = [book["Id"] for book in top_5_similar]
         else:
@@ -152,7 +152,7 @@ class NLPPipeline:
                 # print(f"Book Summary: {result}")
             elif intent == "RATING":
                 print(final_results[0])
-                result = f"Average Rating: {final_results[0]["Average Rating"]}, Ratings Count: {final_results[0]["Ratings Count"]}"
+                result = f"Average Rating: {final_results[0]['Average Rating']}, Ratings Count: {final_results[0]['Ratings Count']}"
                 # print(f"Rating: {result}")
             else:
                 print("Unknown intent. No action taken.")
