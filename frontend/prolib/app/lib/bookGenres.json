@@ -1,0 +1,250 @@
+[
+    {
+        "name": "Other",
+        "value": "other"
+    },
+    {
+        "name": "A-level examinations",
+        "value": "aLevelExaminations"
+    },
+    {
+        "name": "Aeronautics",
+        "value": "aeronautics"
+    },
+    {
+        "name": "Architecture",
+        "value": "architecture"
+    },
+    {
+        "name": "Art",
+        "value": "art"
+    },
+    {
+        "name": "Arts",
+        "value": "arts"
+    },
+    {
+        "name": "Ballistics",
+        "value": "ballistics"
+    },
+    {
+        "name": "Bats",
+        "value": "bats"
+    },
+    {
+        "name": "Body",
+        "value": "body"
+    },
+    {
+        "name": "Business",
+        "value": "business"
+    },
+    {
+        "name": "Business & Economics",
+        "value": "businessAndEconomics"
+    },
+    {
+        "name": "CAD/CAM systems",
+        "value": "cadCamSystems"
+    },
+    {
+        "name": "Cancer",
+        "value": "cancer"
+    },
+    {
+        "name": "Caribbean Examinations Council",
+        "value": "caribbeanExaminationsCouncil"
+    },
+    {
+        "name": "Cases",
+        "value": "cases"
+    },
+    {
+        "name": "Chemistry",
+        "value": "chemistry"
+    },
+    {
+        "name": "Children's literature",
+        "value": "childrensLiterature"
+    },
+    {
+        "name": "Children's stories",
+        "value": "childrensStories"
+    },
+    {
+        "name": "Civilization",
+        "value": "civilization"
+    },
+    {
+        "name": "Commercial",
+        "value": "commercial"
+    },
+    {
+        "name": "Computer science",
+        "value": "computerScience"
+    },
+    {
+        "name": "Computers",
+        "value": "computers"
+    },
+    {
+        "name": "Construction contracts",
+        "value": "constructionContracts"
+    },
+    {
+        "name": "Cookbooks",
+        "value": "cookbooks"
+    },
+    {
+        "name": "Cookery (Natural foods)",
+        "value": "cookeryNaturalFoods"
+    },
+    {
+        "name": "Cooking",
+        "value": "cooking"
+    },
+    {
+        "name": "Detective and mystery stories",
+        "value": "detectiveAndMysteryStories"
+    },
+    {
+        "name": "Education",
+        "value": "education"
+    },
+    {
+        "name": "English",
+        "value": "english"
+    },
+    {
+        "name": "Entrepreneurship",
+        "value": "entrepreneurship"
+    },
+    {
+        "name": "Exercise",
+        "value": "exercise"
+    },
+    {
+        "name": "Family & Relationships",
+        "value": "familyAndRelationships"
+    },
+    {
+        "name": "Fiction",
+        "value": "fiction"
+    },
+    {
+        "name": "Games",
+        "value": "games"
+    },
+    {
+        "name": "Games & Activities",
+        "value": "gamesAndActivities"
+    },
+    {
+        "name": "Health & Fitness",
+        "value": "healthAndFitness"
+    },
+    {
+        "name": "Hindu",
+        "value": "hindu"
+    },
+    {
+        "name": "Hindu mathematics",
+        "value": "hinduMathematics"
+    },
+    {
+        "name": "History",
+        "value": "history"
+    },
+    {
+        "name": "House & Home",
+        "value": "houseAndHome"
+    },
+    {
+        "name": "Intelligence service",
+        "value": "intelligenceService"
+    },
+    {
+        "name": "Interior",
+        "value": "interior"
+    },
+    {
+        "name": "Juvenile Fiction",
+        "value": "juvenileFiction"
+    },
+    {
+        "name": "Juvenile Nonfiction",
+        "value": "juvenileNonfiction"
+    },
+    {
+        "name": "Law",
+        "value": "law"
+    },
+    {
+        "name": "Leadership",
+        "value": "leadership"
+    },
+    {
+        "name": "Literary Collections",
+        "value": "literaryCollections"
+    },
+    {
+        "name": "Literary Criticism",
+        "value": "literaryCriticism"
+    },
+    {
+        "name": "Management",
+        "value": "management"
+    },
+    {
+        "name": "Mathematics",
+        "value": "mathematics"
+    },
+    {
+        "name": "Medical",
+        "value": "medical"
+    },
+    {
+        "name": "Mind & Spirit",
+        "value": "mindAndSpirit"
+    },
+    {
+        "name": "Nature",
+        "value": "nature"
+    },
+    {
+        "name": "Organic",
+        "value": "organic"
+    },
+    {
+        "name": "Performing Arts",
+        "value": "performingArts"
+    },
+    {
+        "name": "Physical and theoretical",
+        "value": "physicalAndTheoretical"
+    },
+    {
+        "name": "Psychology",
+        "value": "psychology"
+    },
+    {
+        "name": "Science",
+        "value": "science"
+    },
+    {
+        "name": "Self-Help",
+        "value": "selfHelp"
+    },
+    {
+        "name": "Social Science",
+        "value": "socialScience"
+    },
+    {
+        "name": "Sports & Recreation",
+        "value": "sportsAndRecreation"
+    },
+    {
+        "name": "Technology & Engineering",
+        "value": "technologyAndEngineering"
+    }
+]

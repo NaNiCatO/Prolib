@@ -5,6 +5,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar";
 import "./globals.css";
 import { usePathname } from "next/navigation";
+import ChatWidget from "./ui/chat-widget";
 
 export default function RootLayout({
   children,
@@ -21,6 +22,7 @@ export default function RootLayout({
           <SidebarInset>
             <main>
               <SidebarTrigger size={"icon"} />
+              <ChatWidget />
               {children}
             </main>
           </SidebarInset>

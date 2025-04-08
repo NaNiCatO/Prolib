@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { BookText, BookPlus, BookCopy, Globe, Library, Package, Info, Settings, LogOut } from "lucide-react"
+import { BookText, BookPlus, BookCopy, Globe, Library, Package, Info, Settings, LogOut, Heart } from "lucide-react"
 import Link from "next/link"
 
 export function AppSidebar() {
@@ -30,7 +30,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size={"huge"}>
-              <Link href={"library"}>
+              <Link href={"/library"}>
                 <Globe className="sidebar-icons" />
                 <span>Library</span>
               </Link>
@@ -38,7 +38,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size={"huge"}>
-              <Link href={"addBook"}>
+              <Link href={"/addBook"}>
                 <BookPlus className="sidebar-icons" />
                 <span>Add Book</span>
               </Link>
@@ -46,7 +46,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size={"huge"}>
-              <Link href={"myCatalog"}>
+              <Link href={"/myCatalog"}>
                 <Library className="sidebar-icons" />
                 <span>My Catalog</span>
               </Link>
@@ -54,15 +54,15 @@ export function AppSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size={"huge"}>
-              <Link href={"myCollections"}>
-                <Package className="sidebar-icons" />
-                <span>My Collections</span>
+              <Link href={"/favorites"}>
+                <Heart className="sidebar-icons" />
+                <span>Favorites</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size={"huge"}>
-              <Link href={"Settings"}>
+              <Link href={"/Settings"}>
                 <Settings className="sidebar-icons" />
                 <span>Settings</span>
               </Link>
@@ -70,7 +70,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size={"huge"}>
-              <Link href={"Support"}>
+              <Link href={"/Support"}>
                 <Info className="sidebar-icons" />
                 <span>Support</span>
               </Link>
@@ -82,7 +82,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size={"lg"}>
-              <Link href={"logOut"}>
+              <Link href={"/logOut"}>
                 Logout
                 <LogOut className="sidebar-icons" />
               </Link>
