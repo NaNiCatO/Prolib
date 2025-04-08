@@ -1,5 +1,6 @@
 import csv
 import os
+import uuid
 
 genres = ["python", "fantasy", "mystery", "science fiction", "romance", "history",
           "Biology", "Chemistry", "Mathematics", "Physics", "Programming", "Cooking",
@@ -54,7 +55,8 @@ def csv_to_prolog(csv_filename, plfile, skiplog, seen_books):
                 continue
             seen_books.add(isbn_key)
 
-            fact = f"book({sanitize(row['Title'])}, " \
+            fact = f"book({sanitize(str(uuid.uuid4()))}, " \
+                   f"{sanitize(row['Title'])}, " \
                    f"{sanitize_list(row['Authors'])}, " \
                    f"{sanitize(row['Publisher'])}, " \
                    f"{sanitize(row['Published Date'])}, " \
@@ -77,11 +79,11 @@ def add_helper_rules(plfile):
         """
 
 % Find a book by ISBN-13
-book_by_isbn(ISBN, Book) :-
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+book_by_id(ID, Book) :-
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
-    ISBN13 = ISBN,
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Id = ID,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
         
 % Case-insensitive substring match (naive)
@@ -92,66 +94,66 @@ contains_ignore_case(Haystack, Needle) :-
 
 % Match by title (partial, case-insensitive)
 book_by_title(Query, Book) :-
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     contains_ignore_case(Title, Query),
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 % Match by exact title (case-insensitive)
 book_by_exact_title(Query, Book) :-
     downcase_atom(Query, LowerQuery),
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     downcase_atom(Title, LowerTitle),
     LowerTitle = LowerQuery,
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 % Match by author (partial, case-insensitive)
 book_by_author(Query, Book) :-
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     member(Author, Authors),
     contains_ignore_case(Author, Query),
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 % Exact (case-insensitive) match by author name
 book_by_exact_author(Query, Book) :-
     downcase_atom(Query, LowerQuery),
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     member(Author, Authors),
     downcase_atom(Author, LowerAuthor),
     LowerAuthor = LowerQuery,
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 % Match by publisher (partial, case-insensitive)
 book_by_publisher(Query, Book) :-
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     downcase_atom(Publisher, LowerPublisher),
     downcase_atom(Query, LowerQuery),
     contains_ignore_case(LowerPublisher, LowerQuery),
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 % Exact (case-insensitive) match by publisher
 book_by_exact_publisher(Query, Book) :-
     downcase_atom(Query, LowerQuery),
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     downcase_atom(Publisher, LowerPublisher),
     LowerPublisher = LowerQuery,
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 
 % Query books by published date (full or year-only match)
 book_by_pubdate(Query, Book) :-
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     (   downcase_atom(PubDate, LowerDate),
         downcase_atom(Query, LowerQuery),
@@ -159,7 +161,7 @@ book_by_pubdate(Query, Book) :-
         ;   sub_string(LowerDate, 0, 4, _, LowerQuery)  % year match: first 4 chars
         )
     ),
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 
@@ -172,43 +174,43 @@ safe_parse_date(String, Timestamp) :-
 % Find books published before a given date
 book_before_date(Query, Book) :-
     safe_parse_date(Query, QueryTS),
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     safe_parse_date(PubDate, BookTS),
     BookTS < QueryTS,
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 % Find books published after a given date
 book_after_date(Query, Book) :-
     safe_parse_date(Query, QueryTS),
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     safe_parse_date(PubDate, BookTS),
     BookTS > QueryTS,
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 
 % Match if a query string occurs in title or author (NER fallback)
 fallback_entity(Query, Book) :-
-    book(Title, Authors, _, _, _, _, _, _, _, _, _, _, _, _, _),
+    book(_, Title, Authors, _, _, _, _, _, _, _, _, _, _, _, _, _),
     (contains_ignore_case(Title, Query) ;
      (member(Author, Authors), contains_ignore_case(Author, Query))),
-    Book = book(Title, Authors, _, _, _, _, _, _, _, _, _, _, _, _, _).
+    Book = book(_, Title, Authors, _, _, _, _, _, _, _, _, _, _, _, _, _).
 
 
 % Exact (whole string) match for title or author, case-insensitive
 fallback_exact_entity(Query, Book) :-
     downcase_atom(Query, LowerQuery),
-    book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
          Categories, Lang, Thumb, Rating, RatingCount, Preview, Info),
     (   downcase_atom(Title, LowerTitle), LowerTitle = LowerQuery
     ;   member(Author, Authors),
         downcase_atom(Author, LowerAuthor),
         LowerAuthor = LowerQuery
     ),
-    Book = book(Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
+    Book = book(Id, Title, Authors, Publisher, PubDate, Desc, ISBN10, ISBN13, PageCount,
                 Categories, Lang, Thumb, Rating, RatingCount, Preview, Info).
 
 
@@ -244,13 +246,13 @@ same_text(A1, A2) :-
 
 % Recommend similar books with score ≥ 3
 recommend_similar_books_with_score(
-    book(Title1, Authors1, Publisher1, _, _, _, _, PageCount1, Categories1, Language1, _, Rating1, _, _, _),
+    book(_, Title1, Authors1, Publisher1, _, _, _, _, PageCount1, Categories1, Language1, _, Rating1, _, _, _),
     Score,
-    book(Title2, Authors2, Publisher2, PubDate2, Desc2,
+    book(Id, Title2, Authors2, Publisher2, PubDate2, Desc2,
          ISBN10, ISBN13, PageCount2, Categories2, Language2,
          Thumb, Rating2, RatingCount, Preview, Info)
 ) :-
-    book(Title2, Authors2, Publisher2, PubDate2, Desc2,
+    book(Id, Title2, Authors2, Publisher2, PubDate2, Desc2,
          ISBN10, ISBN13, PageCount2, Categories2, Language2,
          Thumb, Rating2, RatingCount, Preview, Info),
 
@@ -272,7 +274,7 @@ seen_books = set()
 
 # Write to a single .pl file
 with open("books.pl", "w", encoding="utf-8") as plfile, open("skipped_books.log", "w", encoding="utf-8") as skiplog:
-    plfile.write(":- dynamic(book/15).\n\n")
+    plfile.write(":- dynamic(book/16).\n\n")
     add_helper_rules(plfile)
     for genre in genres:
         csv_file = f"test_data/{genre}_books.csv"

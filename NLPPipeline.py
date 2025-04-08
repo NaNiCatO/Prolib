@@ -134,6 +134,8 @@ class NLPPipeline:
         if intent == "BOOK_RECOMMENDATION":
             top_5_similar = self.prolog_controller.recommend_similar_books_sorted(final_results[0])
             response = f"Top 5 similar books with {final_results[0]["Title"]}: \n- " + "- ".join([book["Title"]+"\n" for book in top_5_similar])
+            #top5 book ids
+            book_ID = [book["Id"] for book in top_5_similar]
         else:
             # Step 4.1: Check if the intent is in the list of intents
             if intent == "BOOK_TITLE":
@@ -170,7 +172,8 @@ class NLPPipeline:
 
             # Step 5: Generate response using Decoder
             response = self.decoder.generate_response(query, result, intent, book_name)
-        return response
+            book_ID = final_results[0]["Id"]
+        return response, book_ID
 
     def run(self, query: str):
         # Step 1: Intent Classification
@@ -224,9 +227,10 @@ if __name__ == "__main__":
 
     for query in test_queries:
         print(f"\n🔍 Query: {query}")
-        result = pipeline.run(query)
+        result, book_id = pipeline.run(query)
         print("_________")
         print(f"Result: {result}")
+        print(f"Book ID: {book_id}")
         # # if result:
         #     print(f"Result: {len(result['result'])}")
         # else:
