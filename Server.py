@@ -246,7 +246,20 @@ def delete_book(book_id: str):
     r.delete(key)
     return {"detail": "Book deleted successfully"}
 
-# 14. NLP Query
+# 14. Toggle favorite status
+@app.patch("/books/{book_id}/favorite")
+def toggle_favorite(book_id: str):
+    key = f"book:{book_id}"
+    if not r.exists(key):
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    current_status = r.hget(key, "isFavorite")
+    new_status = not (current_status == "True")
+    r.hset(key, "isFavorite", str(new_status))
+
+    return {"detail": "Favorite status updated", "isFavorite": new_status}
+
+# 15. NLP Query
 @app.post("/nlp_query")
 def nlp_query(query: str):
     result, book_ID = chatbot.run(query)
