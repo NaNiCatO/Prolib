@@ -4,15 +4,34 @@ from Prolog_Controller import PrologBookManager
 from pydantic import BaseModel
 import redis
 import json
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 manager = PrologBookManager("books.pl")
 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
+# Allow all origins (dev-friendly)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or specify domains: ["http://localhost:3000"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # --- Data Models ---
 class BookUpdate(BaseModel):
-    isFavorite: Optional[bool] = None
-    isCustomBook: Optional[bool] = None
+    title: Optional[str] = None
+    authors: Optional[List[str]] = None
+    publisher: Optional[str] = None
+    publishedDate: Optional[str] = None
+    description: Optional[str] = None
+    pageCount: Optional[str] = None
+    categories: Optional[List[str]] = None
+    language: Optional[str] = None
+    coverUrl: Optional[str] = None
+    isFavorite: Optional[bool] = None  # keep if still needed
+
 
 
 class Book(BaseModel):
@@ -78,9 +97,36 @@ def get_all_books():
         data = r.hgetall(key)
         data["Authors"] = json.loads(data["Authors"])
         data["Categories"] = json.loads(data["Categories"])
+        data["isCustomBook"] = data["isCustomBook"] == "True"
         data["isFavorite"] = data["isFavorite"] == "True"
         books.append(Book(id=key.split(":")[1], data=data))
     return books
+
+@app.get("/books/{book_id}")
+def get_single_book(book_id: str):
+    key = f"book:{book_id}"
+    if not r.exists(key):
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    data = r.hgetall(key)
+
+    # Decode fields
+    try:
+        data["Authors"] = json.loads(data["Authors"])
+    except:
+        data["Authors"] = []
+    try:
+        data["Categories"] = json.loads(data["Categories"])
+    except:
+        data["Categories"] = []
+    data["isFavorite"] = data["isFavorite"] == "True"
+    data["isCustomBook"] = data["isCustomBook"] == "True"
+
+    return {
+        "id": book_id,
+        "data": data
+    }
+
 
 @app.patch("/books/{book_id}")
 def update_book(book_id: str, update: BookUpdate):
@@ -88,10 +134,16 @@ def update_book(book_id: str, update: BookUpdate):
     if not r.exists(key):
         raise HTTPException(status_code=404, detail="Book not found")
 
-    # Update only fields that are set
-    if update.isFavorite is not None:
-        r.hset(key, "isFavorite", str(update.Fav))
-    if update.isCustomBook is not None:
-        r.hset(key, "isCustomBook", str(update.isCustomBook))
+    updates = {}
+    for field, value in update.model_dump(exclude_unset=True).items():
+        # Convert lists to JSON strings for Redis
+        if isinstance(value, list):
+            updates[field] = json.dumps(value)
+        elif isinstance(value, bool):
+            updates[field] = str(value)
+        else:
+            updates[field] = value
 
-    return {"message": "Book updated successfully"}
+    r.hset(key, mapping=updates)
+    return {"message": "Book updated successfully", "updated_fields": list(updates.keys())}
+
