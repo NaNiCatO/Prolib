@@ -26,16 +26,15 @@ app.add_middleware(
 
 # --- Data Models ---
 class BookUpdate(BaseModel):
-    title: Optional[str] = None
-    authors: Optional[List[str]] = None
-    publisher: Optional[str] = None
-    publishedDate: Optional[str] = None
-    description: Optional[str] = None
-    pageCount: Optional[str] = None
-    categories: Optional[List[str]] = None
-    language: Optional[str] = None
-    coverUrl: Optional[str] = None
-    isFavorite: Optional[bool] = None  # keep if still needed
+    title: Optional[str] = Field(default=None, alias="Title")
+    authors: Optional[List[str]] = Field(default=None, alias="Authors")
+    publisher: Optional[str] = Field(default=None, alias="Publisher")
+    publishedDate: Optional[str] = Field(default=None, alias="Published_Date")
+    description: Optional[str] = Field(default=None, alias="Description")
+    pageCount: Optional[str] = Field(default=None, alias="Page_Count")
+    categories: Optional[List[str]] = Field(default=None, alias="Categories")
+    language: Optional[str] = Field(default=None, alias="Language")
+    coverUrl: Optional[str] = Field(default=None, alias="Thumbnail_URL")
 
 class Book(BaseModel):
     title: Optional[str] = None
@@ -67,10 +66,10 @@ class BookData(BaseModel):
     Categories: List[str] = Field(..., alias="Categories")
     Language: str = Field(..., alias="Language")
     Thumbnail_URL: str = Field(..., alias="Thumbnail URL")
-    Average_Rating: str = Field(..., alias="Average Rating")
-    Ratings_Count: str = Field(..., alias="Ratings Count")
-    Preview_Link: str = Field(..., alias="Preview Link")
-    Info_Link: str = Field(..., alias="Info Link")
+    Average_Rating: Optional[str] = Field(default=None, alias="Average Rating")
+    Ratings_Count: Optional[str] = Field(default=None, alias="Ratings Count")
+    Preview_Link: Optional[str] = Field(default=None, alias="Preview Link")
+    Info_Link: Optional[str] = Field(default=None, alias="Info Link")
     isFavorite: bool = Field(..., alias="isFavorite")
     isCustomBook: bool = Field(..., alias="isCustomBook")
 
@@ -164,6 +163,13 @@ def get_all_books():
             raw["isFavorite"] = raw.get("isFavorite", "False") == "True"
             raw["isCustomBook"] = raw.get("isCustomBook", "False") == "True"
 
+            ## Handle missing fields gracefully
+            raw["Average Rating"] = raw.get("Average Rating", None)
+            raw["Ratings Count"] = raw.get("Ratings Count", None)
+
+            raw["Preview Link"] = raw.get("Preview Link", "")
+            raw["Info Link"] = raw.get("Info Link", "")
+
             # Parse into BookData and Books model
             book_data = BookData(**raw)
             book = Books(id=key.split(":")[1], data=book_data)
@@ -191,12 +197,21 @@ def get_single_book(book_id: str):
         raw["isFavorite"] = raw.get("isFavorite", "False") == "True"
         raw["isCustomBook"] = raw.get("isCustomBook", "False") == "True"
 
+        ## Handle missing fields gracefully
+        raw["Average Rating"] = None if raw.get("Average Rating") == "None" else raw.get("Average Rating")
+        raw["Ratings Count"] = None if raw.get("Ratings Count") == "None" else raw.get("Ratings Count")
+
+        raw["Preview Link"] = "" if raw.get("Preview Link") == "None" else raw.get("Preview Link")
+        raw["Info Link"] = "" if raw.get("Info Link") == "None" else raw.get("Info Link")
+
         book_data = BookData(**raw)
         return Books(id=book_id, data=book_data)
 
     except Exception as e:
         print(f"[ERROR] Failed to parse book with ID {book_id}: {e}")
         raise HTTPException(status_code=500, detail="Error parsing book")
+
+
 
 # 11. Add a book to Redis
 @app.post("/books", response_model=Books)
@@ -205,6 +220,7 @@ def add_book(book: Books):
     key = f"book:{book_id}"
 
     data = book.data
+    print(data)
 
     # Prepare Redis-friendly format
     redis_data = {
@@ -219,21 +235,36 @@ def add_book(book: Books):
         "Categories": json.dumps(data.Categories),
         "Language": data.Language,
         "Thumbnail URL": data.Thumbnail_URL,
-        "Average Rating": data.Average_Rating,
-        "Ratings Count": data.Ratings_Count,
-        "Preview Link": data.Preview_Link,
-        "Info Link": data.Info_Link,
+        "Average Rating": data.Average_Rating or "None",
+        "Ratings Count": data.Ratings_Count or "None",
+        "Preview Link": data.Preview_Link or "None",
+        "Info Link": data.Info_Link or "None",
         "isFavorite": str(data.isFavorite),
         "isCustomBook": str(True)  # always True when adding manually
     }
 
+    prolog_data = {
+        "Id": book_id,
+        "Title": data.Title,
+        "Authors": data.Authors,
+        "Publisher": data.Publisher,
+        "Published_Date": data.Published_Date,
+        "Description": data.Description,
+        "ISBN_10": data.ISBN_10,
+        "ISBN_13": data.ISBN_13,
+        "Page_Count": data.Page_Count,
+        "Categories": data.Categories,
+        "Language": data.Language,
+        "Thumbnail_URL": data.Thumbnail_URL,
+        "Average_Rating": data.Average_Rating or 0,
+        "Ratings_Count": data.Ratings_Count or 0,
+        "Preview_Link": data.Preview_Link,
+        "Info_Link": data.Info_Link,
+    }
+
     # Add to Prolog
-    try:
-        prolog_data = redis_data.copy()
-        prolog_data["Id"] = book_id
-        manager.create(prolog_data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to insert into Prolog: {e}")
+    if not manager.create(prolog_data):
+        raise HTTPException(status_code=500, detail="Failed to add book to Prolog database")
 
     # Save in Redis
     r.hset(key, mapping=redis_data)
