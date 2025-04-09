@@ -56,7 +56,7 @@ class Book(BaseModel):
 
 # 1. Get by ISBN
 @app.get("/book/{isbn13}")
-def get_by_isbn(isbn13: str):
+def get_by_id(isbn13: str):
     book = manager.get_by_isbn(isbn13)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -64,7 +64,7 @@ def get_by_isbn(isbn13: str):
 
 # 2. Remove by ISBN
 @app.delete("/book/{isbn13}")
-def remove_by_isbn(isbn13: str):
+def remove_by_id(isbn13: str):
     success = manager.remove_by_isbn(isbn13)
     if not success:
         raise HTTPException(status_code=404, detail="Book not found or could not be deleted")
@@ -78,7 +78,7 @@ def create(book: dict = Body(...)):
 
 # 4. Edit a book
 @app.put("/book/{isbn13}")
-def edit_by_isbn(isbn13: str, book: dict = Body(...)):
+def edit_by_id(isbn13: str, book: dict = Body(...)):
     success = manager.edit_by_isbn(isbn13, book)
     if not success:
         raise HTTPException(status_code=404, detail="Book not found or update failed")

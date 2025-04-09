@@ -1,7 +1,5 @@
 import redis
-import uuid
 import json
-from pyswip import Prolog
 from Prolog_Controller import PrologBookManager
 
 # Connect to Redis
@@ -35,7 +33,7 @@ results = prolog.get_all_books()
 for result in results:
     # Generate unique ID
     try:
-        redis_key = f"book:{result["Id"]}"
+        redis_key = f"book:{result['Id']}"
     except KeyError:
         print(result)
         continue
