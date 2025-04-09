@@ -84,6 +84,8 @@ class Books(BaseModel):
     data: BookData
 
 
+class NLPQuery(BaseModel):
+    query: str
 
 
 
@@ -94,7 +96,6 @@ def safe_json_list(value, fallback=[]):
         print(f"[ERROR] Failed to decode JSON list: {value} -> {e}")
         return fallback
     
-
 
 
 # 1. Get by ISBN
@@ -352,10 +353,6 @@ def toggle_favorite(book_id: str):
 
     return {"detail": "Favorite status updated", "isFavorite": new_status}
 
-
-
-class NLPQuery(BaseModel):
-    query: str
 
 @app.post("/nlp_query")
 def nlp_query(req: NLPQuery):

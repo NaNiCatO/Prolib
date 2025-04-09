@@ -130,7 +130,7 @@ class NLPPipeline:
 
         return final_results
 
-    def Intent_specific_result_retrieval_and_Generate_respons(self, intent: str, final_results: list):
+    def Intent_specific_result_retrieval_and_Generate_respons(self, query, intent: str, final_results: list):
         if intent == "BOOK_RECOMMENDATION":
             top_5_similar = self.prolog_controller.recommend_similar_books_sorted(final_results[0])
             response = f"Top 5 similar books with {final_results[0]['Title']}: \n- " + "- ".join([book['Title']+'\n' for book in top_5_similar])
@@ -202,7 +202,7 @@ class NLPPipeline:
 
         # Step 4: Intent-specific result retrieval and response generation
         # print(intent)
-        response = self.Intent_specific_result_retrieval_and_Generate_respons(intent, final_results)
+        response = self.Intent_specific_result_retrieval_and_Generate_respons(query, intent, final_results)
         
 
         print(f"Query: {query}")
