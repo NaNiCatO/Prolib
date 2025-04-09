@@ -1,17 +1,18 @@
 from fastapi import FastAPI, HTTPException, Body
 from typing import List, Optional
 from Prolog_Controller import PrologBookManager
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import redis
 import json
 from fastapi.middleware.cors import CORSMiddleware
 import uuid
-from NLPPipeline import NLPPipeline
+from pprint import pprint
+#from NLPPipeline import NLPPipeline
 
 app = FastAPI()
 manager = PrologBookManager("books.pl")
 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
-chatbot = NLPPipeline()
+# chatbot = NLPPipeline()
 
 # Allow all origins (dev-friendly)
 app.add_middleware(
@@ -21,6 +22,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # --- Data Models ---
 class BookUpdate(BaseModel):
@@ -52,6 +54,47 @@ class Book(BaseModel):
     previewLink: Optional[str] = None
     infoLink: Optional[str] = None
     
+
+class BookData(BaseModel):
+    Title: str = Field(..., alias="Title")
+    Authors: List[str] = Field(..., alias="Authors")
+    Publisher: str = Field(..., alias="Publisher")
+    Published_Date: str = Field(..., alias="Published Date")
+    Description: str = Field(..., alias="Description")
+    ISBN_10: str = Field(..., alias="ISBN 10")
+    ISBN_13: str = Field(..., alias="ISBN 13")
+    Page_Count: str = Field(..., alias="Page Count")
+    Categories: List[str] = Field(..., alias="Categories")
+    Language: str = Field(..., alias="Language")
+    Thumbnail_URL: str = Field(..., alias="Thumbnail URL")
+    Average_Rating: str = Field(..., alias="Average Rating")
+    Ratings_Count: str = Field(..., alias="Ratings Count")
+    Preview_Link: str = Field(..., alias="Preview Link")
+    Info_Link: str = Field(..., alias="Info Link")
+    isFavorite: bool = Field(..., alias="isFavorite")
+    isCustomBook: bool = Field(..., alias="isCustomBook")
+
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
+
+
+class Books(BaseModel):
+    id: str
+    data: BookData
+
+
+
+
+
+def safe_json_list(value, fallback=[]):
+    try:
+        return json.loads(value) if isinstance(value, str) else value
+    except Exception as e:
+        print(f"[ERROR] Failed to decode JSON list: {value} -> {e}")
+        return fallback
+    
+
 
 
 # 1. Get by ISBN
@@ -105,84 +148,98 @@ def query_custom(filters: dict = Body(...)):
     return manager.query_custom(filters)
 
 # 9. Query all books from Redis
-@app.get("/books", response_model=List[Book])
+@app.get("/books", response_model=List[Books])
 def get_all_books():
     keys = r.keys("book:*")
-    books = []
+    results = []
+
     for key in keys:
-        data = r.hgetall(key)
-        data["Authors"] = json.loads(data["Authors"])
-        data["Categories"] = json.loads(data["Categories"])
-        data["isCustomBook"] = data["isCustomBook"] == "True"
-        data["isFavorite"] = data["isFavorite"] == "True"
-        books.append(Book(id=key.split(":")[1], data=data))
-    return books
+        raw = r.hgetall(key)
+        try:
+            # Safely decode Authors and Categories (stored as JSON strings)
+            raw["Authors"] = safe_json_list(raw.get("Authors", "[]"))
+            raw["Categories"] = safe_json_list(raw.get("Categories", "[]"))
+
+            # Booleans come in as strings from Redis
+            raw["isFavorite"] = raw.get("isFavorite", "False") == "True"
+            raw["isCustomBook"] = raw.get("isCustomBook", "False") == "True"
+
+            # Parse into BookData and Books model
+            book_data = BookData(**raw)
+            book = Books(id=key.split(":")[1], data=book_data)
+            results.append(book)
+
+        except Exception as e:
+            print(f"[ERROR] Skipping book in key {key}: {e}")
+            print("Raw Redis data:", raw)
+
+    return results
+
 
 # 10. Get a single book by ID from Redis
-@app.get("/books/{book_id}")
+@app.get("/books/{book_id}", response_model=Books)
 def get_single_book(book_id: str):
     key = f"book:{book_id}"
     if not r.exists(key):
         raise HTTPException(status_code=404, detail="Book not found")
 
-    data = r.hgetall(key)
+    raw = r.hgetall(key)
 
-    # Decode fields
     try:
-        data["Authors"] = json.loads(data["Authors"])
-    except:
-        data["Authors"] = []
-    try:
-        data["Categories"] = json.loads(data["Categories"])
-    except:
-        data["Categories"] = []
-    data["isFavorite"] = data["isFavorite"] == "True"
-    data["isCustomBook"] = data["isCustomBook"] == "True"
+        raw["Authors"] = safe_json_list(raw.get("Authors", "[]"))
+        raw["Categories"] = safe_json_list(raw.get("Categories", "[]"))
+        raw["isFavorite"] = raw.get("isFavorite", "False") == "True"
+        raw["isCustomBook"] = raw.get("isCustomBook", "False") == "True"
 
-    return {
-        "id": book_id,
-        "data": data
-    }
+        book_data = BookData(**raw)
+        return Books(id=book_id, data=book_data)
+
+    except Exception as e:
+        print(f"[ERROR] Failed to parse book with ID {book_id}: {e}")
+        raise HTTPException(status_code=500, detail="Error parsing book")
 
 # 11. Add a book to Redis
-@app.post("/books")
-def add_book(book: Book):
+@app.post("/books", response_model=Books)
+def add_book(book: Books):
     book_id = str(uuid.uuid4())
     key = f"book:{book_id}"
 
-    # Convert lists to JSON strings for Redis
-    book_data = {
-        "Title": book.title,
-        "Authors": json.dumps(book.authors) if book.authors else None,
-        "Publisher": book.publisher,
-        "Published Date": book.publishedDate,
-        "Description": book.description,
-        "ISBN 10": book.isbn10,
-        "ISBN 13": book.isbn13,
-        "Page Count": book.pageCount,
-        "Categories": json.dumps(book.categories) if book.categories else None,
-        "Language": book.language,
-        "Thumbnail URL": book.thumbnailUrl,
-        "Average Rating": str(book.averageRating) if book.averageRating else None,
-        "People Rated": str(book.ratingsCount) if book.ratingsCount else None,
-        "Preview Link": book.previewLink,
-        "Info Link": book.infoLink
+    data = book.data
+
+    # Prepare Redis-friendly format
+    redis_data = {
+        "Title": data.Title,
+        "Authors": json.dumps(data.Authors),
+        "Publisher": data.Publisher,
+        "Published Date": data.Published_Date,
+        "Description": data.Description,
+        "ISBN 10": data.ISBN_10,
+        "ISBN 13": data.ISBN_13,
+        "Page Count": data.Page_Count,
+        "Categories": json.dumps(data.Categories),
+        "Language": data.Language,
+        "Thumbnail URL": data.Thumbnail_URL,
+        "Average Rating": data.Average_Rating,
+        "Ratings Count": data.Ratings_Count,
+        "Preview Link": data.Preview_Link,
+        "Info Link": data.Info_Link,
+        "isFavorite": str(data.isFavorite),
+        "isCustomBook": str(True)  # always True when adding manually
     }
-    # Add to Prolog database
-    book_data["Id"] = book_id
-    manager.create(book_data)
 
-    # remove 'Id' from book_data for Redis
-    book_data.pop("Id", None)
-    # Add isFavorite and isCustomBook fields
-    book_data["isFavorite"] = False
-    book_data["isCustomBook"] = True
+    # Add to Prolog
+    try:
+        prolog_data = redis_data.copy()
+        prolog_data["Id"] = book_id
+        manager.create(prolog_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to insert into Prolog: {e}")
 
-    r.hset(key, mapping=book_data)
+    # Save in Redis
+    r.hset(key, mapping=redis_data)
 
+    return Books(id=book_id, data=data)
 
-    
-    return {"id": book_id, **book_data}
 
 # 12. Update a book in Redis
 @app.patch("/books/{book_id}")
@@ -259,8 +316,8 @@ def toggle_favorite(book_id: str):
 
     return {"detail": "Favorite status updated", "isFavorite": new_status}
 
-# 15. NLP Query
-@app.post("/nlp_query")
-def nlp_query(query: str):
-    result, book_ID = chatbot.run(query)
-    return {"result": result, "book_ID": book_ID}
+# # 15. NLP Query
+# @app.post("/nlp_query")
+# def nlp_query(query: str):
+#     result, book_ID = chatbot.run(query)
+#     return {"result": result, "book_ID": book_ID}
