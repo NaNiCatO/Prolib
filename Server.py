@@ -7,12 +7,12 @@ import json
 from fastapi.middleware.cors import CORSMiddleware
 import uuid
 from pprint import pprint
-#from NLPPipeline import NLPPipeline
+from NLPPipeline import NLPPipeline
 
 app = FastAPI()
 manager = PrologBookManager("books.pl")
 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
-# chatbot = NLPPipeline()
+chatbot = NLPPipeline()
 
 # Allow all origins (dev-friendly)
 app.add_middleware(
@@ -352,8 +352,12 @@ def toggle_favorite(book_id: str):
 
     return {"detail": "Favorite status updated", "isFavorite": new_status}
 
-# # 15. NLP Query
-# @app.post("/nlp_query")
-# def nlp_query(query: str):
-#     result, book_ID = chatbot.run(query)
-#     return {"result": result, "book_ID": book_ID}
+
+
+class NLPQuery(BaseModel):
+    query: str
+
+@app.post("/nlp_query")
+def nlp_query(req: NLPQuery):
+    result, book_ID = chatbot.run(req.query)
+    return {"result": result, "book_ID": book_ID}
