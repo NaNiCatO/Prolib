@@ -136,6 +136,8 @@ class NLPPipeline:
             response = f"Top 5 similar books with {final_results[0]['Title']}: \n- " + "- ".join([book['Title']+'\n' for book in top_5_similar])
             #top5 book ids
             book_ID = [book["Id"] for book in top_5_similar]
+        elif intent == "ADD_BOOK":
+            response = "ADD_BOOK"
         else:
             # Step 4.1: Check if the intent is in the list of intents
             if intent == "BOOK_TITLE":
@@ -171,7 +173,8 @@ class NLPPipeline:
             # print(f"Result: {result}")
 
             # Step 5: Generate response using Decoder
-            response = self.decoder.generate_response(query, result, intent, book_name)
+            if result :
+                response = self.decoder.generate_response(query, result, intent, book_name)
             book_ID = final_results[0]["Id"]
         return response, book_ID
 
