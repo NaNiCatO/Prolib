@@ -10,24 +10,8 @@ import { EditBookSheet } from '@/app/ui/edit-book-sheet';
 import { BookData, BookDataAPI } from '@/app/lib/types';
 import { makeAPIFromBookData, makeBookDataFromAPI, makeBookEditable, updateBookDataFromEditable } from '@/app/lib/bookDataFormatting';
 import fallbackImage from "@/public/fallbackImage.png"
+import { toast } from 'sonner';
 
-
-// interface BookData {
-//     id: string;
-//     isCustomBook: boolean
-//     isFavorite: boolean
-//     title: string;
-//     author: string;
-//     coverImage: string;
-//     description: string;
-//     releaseDate: string;
-//     publisher: string;
-//     language: string;
-//     format: string;
-//     isbn: string;
-//     pages: number;
-//     categories: string[];
-// }
 
 const defaultBookData: BookData = {
     id: "",
@@ -49,31 +33,10 @@ const defaultBookData: BookData = {
 }
 
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    // Example book data - in a real app, you'd fetch this based on route params
-    // let book: BookData = {
-    //     id: '1',
-    //     isCustomBook: true,
-    //     isFavorite: false,
-    //     title: 'Debt — The First 5,000 Years',
-    //     authors: ['David Graeber'],
-    //     coverUrl: '/diary.jpg', // Placeholder for demo - replace with actual image path
-    //     description: `Diminutive rooms, grand possibilities. Small Homes, Grand Living shows how to make use of a limited space and turn a small apartment into a design marvel! Here anthropologist David Graeber presents a stunning reversal of conventional wisdom. He shows that before there was money, there was debt. For more than 5,000 years, since the beginnings of the first agrarian empires, humans have used elaborate credit systems to buy and sell goods—that is, long before the invention of coins or cash.`,
-    //     publishedDate: 'May 2017',
-    //     publisher: 'Melville House',
-    //     language: 'English',
-    //     isbn10: "",
-    //     isbn13: '978-3-89955-598-8',
-    //     pageCount: "256",
-    //     categories: ['History', 'Economics', 'Anthropology'],
-    //     rating: 3.5,
-    //     ratingCount: 86
-    // };
-
     const router = useRouter()
     const parameters = use(params)
 
     const { id } = parameters
-    console.log(id)
 
     const [book, setBook] = useState<BookData>(defaultBookData)
     const [isFavorite, setIsFavorite] = useState(book?.isFavorite ?? false)
@@ -84,12 +47,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
         async function fetchBook() {
             try {
                 const response = await fetch(new URL(`http://localhost:8000/books/${id}`));
-                console.log(response, "response")
                 const data: BookDataAPI = await response.json();
-                console.log(data, "data")
                 const formattedData: BookData = makeBookDataFromAPI(data)
-                console.log(formattedData, "formattedData")
-                setBook(formattedData);
+                setBook(formattedData)
+                setIsFavorite(formattedData.isFavorite)
                 setBookEditData(makeBookEditable(formattedData))
             } catch (error) {
                 console.error('Error fetching books:', error);
@@ -104,8 +65,6 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
         // update backend data
         const res = await fetch(new URL(`http://localhost:8000/books/${id}/favorite`), { method: "PATCH" })
-        console.log(id)
-        console.log(res.ok)
     }
 
     const handleChangeEvent = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -114,26 +73,19 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
         setBookEditData(b => {
             return { ...b, [id]: value }
         })
-        console.log(bookEditData)
     }
 
     const handleDeleteBook = async () => {
         // update backend data
         const res = await fetch(new URL(`http://localhost:8000/books/${id}`), { method: "DELETE" })
-        console.log(id)
-        console.log(res.ok)
 
         router.back()
         // Display toast
+        if (res.ok) toast("Deleted book successfully")
     }
 
-    const handleEditBook = async () => {
-        // book = updateBookDataFromEditable(book, bookEditData)
-        // const bookApi = makeAPIFromBookData(book)
-        // update backend data
-        // formDataBookUpdate.append('update', JSON.stringify(bookApi));
-
-        const bookEdited: any = { ...bookEditData }
+    const handleEditBook = async (categories: string[]) => {
+        const bookEdited: any = { ...bookEditData, "Categories": categories }
         delete bookEdited.id
 
         const res = await fetch(new URL(`http://localhost:8000/books/${id}`), {
@@ -144,13 +96,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             body: JSON.stringify(bookEdited)
         })
 
-        console.log(id)
-        console.log(res.ok)
-        console.log(bookEdited)
-
-        // router.prefetch(`/bookDetails/${id}`)
-        router.replace(`/bookDetails/${id}`)
+        router.refresh()
         // Display toast
+        toast("Edited book successfully")
     }
 
     return (
@@ -168,17 +116,8 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                     <div className="bg-white p-4 shadow-lg rounded-lg">
                         <div className="flex flex-wrap justify-end mb-4">
                             <Button variant="outline" size="sm" onClick={handleToggleFavorites}>
-                                <Heart className={`h-4 w-4 ${isFavorite && "fill-red-500 stroke-red-500"}`} />
-                                {/* Favorite */}
+                                <Heart className={`h-4 w-4 ${isFavorite ? "fill-red-500 stroke-red-500" : ""}`} />
                             </Button>
-                            {/* <Button variant="outline" size="sm">
-                                <Share2 className="h-4 w-4 mr-2" />
-                                Share
-                            </Button> */}
-                            {/* <Button variant="outline" size="sm">
-                                <Bookmark className="h-4 w-4 mr-2" />
-                                Save
-                            </Button> */}
                         </div>
                         <div className="relative h-100 w-auto">
                             <Image

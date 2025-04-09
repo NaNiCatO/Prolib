@@ -13,6 +13,7 @@ import { camelCaseToWords } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import CategorySelectionBadges from "../ui/category-selection-badges";
 import { makeAPIFromAddBookData } from "../lib/bookDataFormatting";
+import { toast } from "sonner";
 
 const defaultFormState: AddBookData = {
     title: "",
@@ -40,10 +41,6 @@ const AddBookForm = () => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // const handleGenreChange = (value: string[]) => {
-    //     setFormData((prev) => ({ ...prev, categories: value }));
-    // };
-
     const handleSubmit = async (e: any) => {
         e.preventDefault();
 
@@ -68,9 +65,6 @@ const AddBookForm = () => {
         formData.authors = formData.authors.join("").split(",")
 
         // Handle form submission here
-        const test = JSON.stringify(makeAPIFromAddBookData(formData))
-        console.log(test, "add book sent")
-
         const res2 = await fetch(new URL('http://localhost:8000/books'), {
             method: 'POST',
             headers: {
@@ -79,11 +73,7 @@ const AddBookForm = () => {
             body: JSON.stringify(makeAPIFromAddBookData(formData)),
         });
 
-        const resStatus = res2.status
-        console.log(resStatus)
-
-        // console.log("Form data:", formData, "Cover image:", coverImage, resStatus);
-        // resetForm()
+        if (res2.ok) toast("Added book successfully")
         router.push("/myCatalog")
     };
 
@@ -91,8 +81,6 @@ const AddBookForm = () => {
         setCoverImage(null)
         setFormData(defaultFormState)
     }
-
-    // console.log(formData, "formdata")
 
     return (
         <div className="max-w-4xl mx-auto">
