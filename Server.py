@@ -25,16 +25,19 @@ app.add_middleware(
 
 
 # --- Data Models ---
-class BookUpdate(BaseModel):
+class BookUpdateData(BaseModel):
     title: Optional[str] = Field(default=None, alias="Title")
     authors: Optional[List[str]] = Field(default=None, alias="Authors")
     publisher: Optional[str] = Field(default=None, alias="Publisher")
-    publishedDate: Optional[str] = Field(default=None, alias="Published_Date")
+    publishedDate: Optional[str] = Field(default=None, alias="Published Date")
     description: Optional[str] = Field(default=None, alias="Description")
-    pageCount: Optional[str] = Field(default=None, alias="Page_Count")
+    pageCount: Optional[str] = Field(default=None, alias="Page Count")
     categories: Optional[List[str]] = Field(default=None, alias="Categories")
     language: Optional[str] = Field(default=None, alias="Language")
-    coverUrl: Optional[str] = Field(default=None, alias="Thumbnail_URL")
+    coverUrl: Optional[str] = Field(default=None, alias="Thumbnail URL")
+
+class BookUpdate(BaseModel):
+    data: BookUpdateData
 
 class Book(BaseModel):
     title: Optional[str] = None
@@ -275,13 +278,14 @@ def add_book(book: Books):
 # 12. Update a book in Redis
 @app.patch("/books/{book_id}")
 def update_book(book_id: str, update: BookUpdate):
+    print(f"Updating book with ID: {book_id}")
     key = f"book:{book_id}"
     if not r.exists(key):
         raise HTTPException(status_code=404, detail="Book not found")
 
     updates = {}
-    for field, value in update.model_dump(exclude_unset=True).items():
-        # Convert lists to JSON strings for Redis
+    for field, value in update.data.model_dump(exclude_unset=True, by_alias=True).items():
+        print(f"Updating field: {field} with value: {value}")
         if isinstance(value, list):
             updates[field] = json.dumps(value)
         elif isinstance(value, bool):
@@ -289,13 +293,14 @@ def update_book(book_id: str, update: BookUpdate):
         else:
             updates[field] = value
 
+
     r.hset(key, mapping=updates)
 
     # Update Prolog database
     book = manager.get_by_id(book_id)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found in Prolog database")
-    
+
     # Update the Prolog database with the new values
     for field, value in updates.items():
         if field == "Title":
@@ -314,6 +319,8 @@ def update_book(book_id: str, update: BookUpdate):
             book["Categories"] = value
         elif field == "Language":
             book["Language"] = value
+        elif field == "Thumbnail URL":
+            book["Thumbnail URL"] = value
         else:
             continue
     manager.edit_by_id(book_id, book)
