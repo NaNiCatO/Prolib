@@ -36,8 +36,6 @@ class BookUpdateData(BaseModel):
     language: Optional[str] = Field(default=None, alias="Language")
     coverUrl: Optional[str] = Field(default=None, alias="Thumbnail URL")
 
-class BookUpdate(BaseModel):
-    data: BookUpdateData
 
 class Book(BaseModel):
     title: Optional[str] = None
@@ -277,14 +275,14 @@ def add_book(book: Books):
 
 # 12. Update a book in Redis
 @app.patch("/books/{book_id}")
-def update_book(book_id: str, update: BookUpdate):
+def update_book(book_id: str, update: BookUpdateData):
     print(f"Updating book with ID: {book_id}")
     key = f"book:{book_id}"
     if not r.exists(key):
         raise HTTPException(status_code=404, detail="Book not found")
 
     updates = {}
-    for field, value in update.data.model_dump(exclude_unset=True, by_alias=True).items():
+    for field, value in update.model_dump(exclude_unset=True, by_alias=True).items():
         print(f"Updating field: {field} with value: {value}")
         if isinstance(value, list):
             updates[field] = json.dumps(value)
