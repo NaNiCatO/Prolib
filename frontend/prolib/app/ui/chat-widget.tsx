@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 interface Message {
     content: string;
     isUser: boolean;
-    timestamp: Date;
+    // timestamp: Date;
 }
 
 export default function ChatWidget() {
@@ -17,8 +17,8 @@ export default function ChatWidget() {
     const [messages, setMessages] = useState<Message[]>([
         {
             content: 'Hello, How can I assist you?',
-            isUser: false,
-            timestamp: new Date(),
+            isUser: false
+            // timestamp: new Date(),
         },
     ]);
 
@@ -92,7 +92,7 @@ export default function ChatWidget() {
         setIsOpen(!isOpen);
     };
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!message.trim()) return;
@@ -103,26 +103,43 @@ export default function ChatWidget() {
             {
                 content: message,
                 isUser: true,
-                timestamp: new Date(),
+                // timestamp: new Date(),
             },
         ];
 
         setMessages(newMessages);
         setMessage('');
 
-        // Simulate bot response (in a real app, you'd call your Prolog backend here)
-        
+        const formData = new FormData()
+        formData.append("query", message)
 
-        setTimeout(() => {
-            setMessages(prevMessages => [
-                ...prevMessages,
-                {
-                    content: "I'm processing your request. How can I help with your book search?",
-                    isUser: false,
-                    timestamp: new Date(),
-                },
-            ]);
-        }, 500);
+        // Simulate bot response (in a real app, you'd call your Prolog backend here)
+        const res = await fetch(new URL("http://localhost:8000/nlp_query"), {
+            method: "POST",
+            body: formData
+        })
+
+        const { result, book_ID } = (await res.json())
+
+        setMessages(prevMessages => [
+            ...prevMessages,
+            {
+                content: `${result}${book_ID ? `\n${book_ID}` : ""}`,
+                isUser: false,
+                // timestamp: new Date(),
+            },
+        ]);
+
+        // setTimeout(() => {
+        //     setMessages(prevMessages => [
+        //         ...prevMessages,
+        //         {
+        //             content: "I'm processing your request. How can I help with your book search?",
+        //             isUser: false,
+        //             timestamp: new Date(),
+        //         },
+        //     ]);
+        // }, 500);
     };
 
     return (

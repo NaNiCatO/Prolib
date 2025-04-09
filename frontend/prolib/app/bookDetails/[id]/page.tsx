@@ -58,11 +58,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     const [isFavorite, setIsFavorite] = useState(book?.isFavorite ?? false)
     const [bookEditData, setBookEditData] = useState(makeBookEditable(book))
 
-    const handleToggleFavorites = () => {
-        // update backend data
-        // here
-
+    const handleToggleFavorites = async () => {
         setIsFavorite(b => !b)
+        
+        // update backend data
+        const res = await fetch(new URL(`http://localhost:8000/books/${id}/favorite`), { method: "PATCH" })
+        console.log(id)
+        console.log(res.ok)
     }
 
     const handleChangeEvent = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -76,7 +78,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
     const handleDeleteBook = async () => {
         // update backend data
-        const res = await fetch(`http://localhost:8000/books/${id}`, { method: "DELETE" })
+        const res = await fetch(new URL(`http://localhost:8000/books/${id}`), { method: "DELETE" })
         console.log(id)
         console.log(res.ok)
 
@@ -88,12 +90,11 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
         book = updateBookDataFromEditable(book, bookEditData)
         const bookApi = makeAPIFromBookData(book)
         // update backend data
-        const formDataBookUpdate = new FormData();
-        formDataBookUpdate.append('update', JSON.stringify(bookApi));
+        // formDataBookUpdate.append('update', JSON.stringify(bookApi));
 
-        const res = await fetch(`http://localhost:8000/books/${id}`, {
+        const res = await fetch(new URL(`http://localhost:8000/books/${id}`), {
             method: "PATCH",
-            body: formDataBookUpdate
+            body: JSON.stringify(bookApi)
         })
 
         console.log(id)

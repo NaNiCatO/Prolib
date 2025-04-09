@@ -12,6 +12,7 @@ import { AddBookData } from "../lib/types";
 import { camelCaseToWords } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import CategorySelectionBadges from "../ui/category-selection-badges";
+import { makeAPIFromAddBookData } from "../lib/bookDataFormatting";
 
 const defaultFormState: AddBookData = {
     title: "",
@@ -60,12 +61,12 @@ const AddBookForm = () => {
 
         setFormData(prev => ({ ...prev, coverUrl: filePath }))
         // Handle form submission here
-        const formDataBook = new FormData();
-        formDataBook.append('book', JSON.stringify(formData));
+        // const formDataBook = new FormData();
+        // formDataBook.append('book', JSON.stringify(formData));
 
-        const res2 = await fetch('http://localhost:8000/books', {
+        const res2 = await fetch(new URL('http://localhost:8000/books'), {
             method: 'POST',
-            body: formDataBook,
+            body: JSON.stringify(makeAPIFromAddBookData(formData)),
         });
 
         const resStatus = res2.status

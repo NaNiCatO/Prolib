@@ -1,5 +1,5 @@
 import { generateUUID } from "@/lib/utils";
-import { BookData, BookDataAPI, BookEditable } from "./types";
+import { AddBookData, BookData, BookDataAPI, BookEditable } from "./types";
 
 export const makeBookDataFromAPI = (bookDataAPI: BookDataAPI[]): BookData[] => {
     const bookData: BookData[] = bookDataAPI.map(b => ({
@@ -68,6 +68,31 @@ export const makeAPIFromBookData = (book: BookData): BookDataAPI => {
             Thumbnail: book.coverUrl,
             AvgRating: book.rating,
             PeopleRated: book.ratingCount
+        }
+    }
+
+    return bookDataApi
+}
+
+export const makeAPIFromAddBookData = (book: AddBookData): BookDataAPI => {
+    const bookDataApi: BookDataAPI = {
+        id: "",
+        data: {
+            isCustomBook: true,
+            isFavorite: false,
+            Title: book.title,
+            Authors: book.authors,
+            Publisher: book.publisher,
+            PublishedDate: book.publishedDate,
+            Description: book.description,
+            ISBN10: "",
+            ISBN13: "",
+            PageCount: parseInt(book.pageCount),
+            Categories: book.categories,
+            Language: book.language,
+            Thumbnail: book.coverUrl,
+            AvgRating: null,
+            PeopleRated: null
         }
     }
 
