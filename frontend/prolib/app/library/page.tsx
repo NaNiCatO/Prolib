@@ -65,6 +65,7 @@ export default function Library() {
                 const data: BookDataAPI[] = await response.json();
                 console.log(data, "data")
                 const formattedData = makeBookDataFromAPI(data)
+                console.log(formattedData, "formattedData")
                 setBooks(formattedData);
             } catch (error) {
                 console.error('Error fetching books:', error);

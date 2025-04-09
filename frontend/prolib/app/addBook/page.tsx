@@ -35,6 +35,8 @@ const AddBookForm = () => {
 
     const handleInputChange = (e: any) => {
         const { name, value } = e.target;
+        if (name == "authors") return setFormData((prev) => ({ ...prev, [name]: [value] }));
+
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
@@ -59,19 +61,28 @@ const AddBookForm = () => {
             filePath = `/uploads/${(await res1.json()).filename}`
         }
 
-        setFormData(prev => ({ ...prev, coverUrl: filePath }))
+        // Set file path
+        formData.coverUrl = filePath
+
+        // Join authors with commas as separator
+        formData.authors = formData.authors.join("").split(",")
+
         // Handle form submission here
-        // const formDataBook = new FormData();
-        // formDataBook.append('book', JSON.stringify(formData));
+        const test = JSON.stringify(makeAPIFromAddBookData(formData))
+        console.log(test, "add book sent")
 
         const res2 = await fetch(new URL('http://localhost:8000/books'), {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify(makeAPIFromAddBookData(formData)),
         });
 
         const resStatus = res2.status
+        console.log(resStatus)
 
-        console.log("Form data:", formData, "Cover image:", coverImage, resStatus);
+        // console.log("Form data:", formData, "Cover image:", coverImage, resStatus);
         // resetForm()
         router.push("/myCatalog")
     };

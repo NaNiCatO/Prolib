@@ -1,5 +1,5 @@
 "use client"
-import React, { ChangeEvent, use, useState } from 'react';
+import React, { ChangeEvent, use, useEffect, useState } from 'react';
 import { ArrowLeft, Heart, Share2, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,8 +7,10 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import DeleteBookAlertDialog from '@/app/ui/delete-book-alert-dialog';
 import { EditBookSheet } from '@/app/ui/edit-book-sheet';
-import { BookData } from '@/app/lib/types';
-import { makeAPIFromBookData, makeBookEditable, updateBookDataFromEditable } from '@/app/lib/bookDataFormatting';
+import { BookData, BookDataAPI } from '@/app/lib/types';
+import { makeAPIFromBookData, makeBookDataFromAPI, makeBookEditable, updateBookDataFromEditable } from '@/app/lib/bookDataFormatting';
+import fallbackImage from "@/public/fallbackImage.png"
+
 
 // interface BookData {
 //     id: string;
@@ -27,40 +29,79 @@ import { makeAPIFromBookData, makeBookEditable, updateBookDataFromEditable } fro
 //     categories: string[];
 // }
 
+const defaultBookData: BookData = {
+    id: "",
+    isCustomBook: false,
+    isFavorite: false,
+    title: "",
+    authors: [],
+    publisher: "",
+    publishedDate: "",
+    description: "",
+    isbn10: "",
+    isbn13: "",
+    pageCount: "",
+    categories: [],
+    language: "",
+    coverUrl: "",
+    rating: null,
+    ratingCount: null
+}
+
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
     // Example book data - in a real app, you'd fetch this based on route params
-    let book: BookData = {
-        id: '1',
-        isCustomBook: true,
-        isFavorite: false,
-        title: 'Debt — The First 5,000 Years',
-        authors: ['David Graeber'],
-        coverUrl: '/diary.jpg', // Placeholder for demo - replace with actual image path
-        description: `Diminutive rooms, grand possibilities. Small Homes, Grand Living shows how to make use of a limited space and turn a small apartment into a design marvel! Here anthropologist David Graeber presents a stunning reversal of conventional wisdom. He shows that before there was money, there was debt. For more than 5,000 years, since the beginnings of the first agrarian empires, humans have used elaborate credit systems to buy and sell goods—that is, long before the invention of coins or cash.`,
-        publishedDate: 'May 2017',
-        publisher: 'Melville House',
-        language: 'English',
-        isbn10: "",
-        isbn13: '978-3-89955-598-8',
-        pageCount: "256",
-        categories: ['History', 'Economics', 'Anthropology'],
-        rating: 3.5,
-        ratingCount: 86
-    };
+    // let book: BookData = {
+    //     id: '1',
+    //     isCustomBook: true,
+    //     isFavorite: false,
+    //     title: 'Debt — The First 5,000 Years',
+    //     authors: ['David Graeber'],
+    //     coverUrl: '/diary.jpg', // Placeholder for demo - replace with actual image path
+    //     description: `Diminutive rooms, grand possibilities. Small Homes, Grand Living shows how to make use of a limited space and turn a small apartment into a design marvel! Here anthropologist David Graeber presents a stunning reversal of conventional wisdom. He shows that before there was money, there was debt. For more than 5,000 years, since the beginnings of the first agrarian empires, humans have used elaborate credit systems to buy and sell goods—that is, long before the invention of coins or cash.`,
+    //     publishedDate: 'May 2017',
+    //     publisher: 'Melville House',
+    //     language: 'English',
+    //     isbn10: "",
+    //     isbn13: '978-3-89955-598-8',
+    //     pageCount: "256",
+    //     categories: ['History', 'Economics', 'Anthropology'],
+    //     rating: 3.5,
+    //     ratingCount: 86
+    // };
 
     const router = useRouter()
     const parameters = use(params)
 
     const { id } = parameters
     console.log(id)
-    // Fetch book based on book id here
 
+    const [book, setBook] = useState<BookData>(defaultBookData)
     const [isFavorite, setIsFavorite] = useState(book?.isFavorite ?? false)
     const [bookEditData, setBookEditData] = useState(makeBookEditable(book))
 
+    // Fetch book based on book id here
+    useEffect(() => {
+        async function fetchBook() {
+            try {
+                const response = await fetch(new URL(`http://localhost:8000/books/${id}`));
+                console.log(response, "response")
+                const data: BookDataAPI = await response.json();
+                console.log(data, "data")
+                const formattedData: BookData = makeBookDataFromAPI(data)
+                console.log(formattedData, "formattedData")
+                setBook(formattedData);
+                setBookEditData(makeBookEditable(formattedData))
+            } catch (error) {
+                console.error('Error fetching books:', error);
+            }
+        }
+
+        fetchBook();
+    }, []);
+
     const handleToggleFavorites = async () => {
         setIsFavorite(b => !b)
-        
+
         // update backend data
         const res = await fetch(new URL(`http://localhost:8000/books/${id}/favorite`), { method: "PATCH" })
         console.log(id)
@@ -87,22 +128,28 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     }
 
     const handleEditBook = async () => {
-        book = updateBookDataFromEditable(book, bookEditData)
-        const bookApi = makeAPIFromBookData(book)
+        // book = updateBookDataFromEditable(book, bookEditData)
+        // const bookApi = makeAPIFromBookData(book)
         // update backend data
         // formDataBookUpdate.append('update', JSON.stringify(bookApi));
 
+        const bookEdited: any = { ...bookEditData }
+        delete bookEdited.id
+
         const res = await fetch(new URL(`http://localhost:8000/books/${id}`), {
             method: "PATCH",
-            body: JSON.stringify(bookApi)
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(bookEdited)
         })
 
         console.log(id)
         console.log(res.ok)
-        console.log(bookApi)
+        console.log(bookEdited)
 
         // router.prefetch(`/bookDetails/${id}`)
-        router.refresh()
+        router.replace(`/bookDetails/${id}`)
         // Display toast
     }
 
@@ -135,7 +182,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                         </div>
                         <div className="relative h-100 w-auto">
                             <Image
-                                src={book.coverUrl}
+                                src={(book.coverUrl == "N/A" || book.coverUrl == "") ? fallbackImage.src : book.coverUrl}
                                 alt={`${book.title} by ${book.authors.join(", ")}`}
                                 fill={true}
                                 className="w-full object-contain aspect-[3/4] rounded"

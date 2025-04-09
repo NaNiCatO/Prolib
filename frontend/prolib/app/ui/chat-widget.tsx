@@ -110,13 +110,16 @@ export default function ChatWidget() {
         setMessages(newMessages);
         setMessage('');
 
-        const formData = new FormData()
-        formData.append("query", message)
+        // const formData = new FormData()
+        // formData.append("query", message)
 
         // Simulate bot response (in a real app, you'd call your Prolog backend here)
         const res = await fetch(new URL("http://localhost:8000/nlp_query"), {
             method: "POST",
-            body: formData
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ query: message }),
         })
 
         const { result, book_ID } = (await res.json())

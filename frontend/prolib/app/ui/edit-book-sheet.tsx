@@ -15,14 +15,14 @@ import {
 import { PenBox } from "lucide-react"
 import { ChangeEvent, Dispatch, useState } from "react"
 import { BookEditable } from "../lib/types"
-import { camelCaseToWords } from "@/lib/utils"
 import { Textarea } from "@/components/ui/textarea"
 import CategorySelectionBadges from "./category-selection-badges"
 
 export function EditBookSheet({ text, book, changeEventHandler, submitHandler }: { text: string, book: BookEditable, changeEventHandler: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void, submitHandler: () => void }) {
-    const [categoriesList, setCategoriesList] = useState<{ categories: string[] }>({ categories: [] });
+    const [categoriesList, setCategoriesList] = useState<{ categories: string[] }>({ categories: book.Categories });
     const [selectedCategory, setSelectedCategory] = useState("");
 
+    console.log(book, "book")
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -40,20 +40,21 @@ export function EditBookSheet({ text, book, changeEventHandler, submitHandler }:
                 </SheetHeader>
                 <div className="grid gap-4 py-4">
                     {Object.entries(book).map(([key, value]) => {
+                        console.log(key, value, "keyval")
                         if (key == "id") return
-                        if (key == "authors") return (// field that explains to add comma for multiple authors
+                        if (key == "Authors") return (// field that explains to add comma for multiple authors
                             <div className="grid grid-cols-4 items-center gap-4 gap-y-1" key={key}>
-                                <Label htmlFor="title" className="block text-right">
-                                    {camelCaseToWords(key)}
+                                <Label htmlFor={key} className="block text-right">
+                                    {key}
                                 </Label>
                                 <Input id={key} value={value} onChange={(e) => changeEventHandler(e)} className="w-[90%] col-span-3" />
                                 <p className="text-sm text-gray-500 col-span-4 ml-5 mr-5" key={`${key}P`} >Separate multiple authors with commas (e.g., "J.K. Rowling, John Smith")</p>
                             </div>
                         )
-                        if (key == "description") return (// Return a textarea instead of an input field
+                        if (key == "Description") return (// Return a textarea instead of an input field
                             <div className="grid grid-cols-4 items-start gap-4" key={key}>
-                                <Label htmlFor="title" className="block text-right">
-                                    {camelCaseToWords(key)}
+                                <Label htmlFor={key} className="block text-right">
+                                    {key}
                                 </Label>
                                 <Textarea
                                     id={key}
@@ -66,14 +67,14 @@ export function EditBookSheet({ text, book, changeEventHandler, submitHandler }:
                                 />
                             </div>
                         )
-                        if (key == "categories") return <CategorySelectionBadges classNames="grid grid-cols4 items-center gap-1 ml-3 mr-3" key={"categorySelectionBadges"} formData={categoriesList} setFormData={setCategoriesList}
+                        if (key == "Categories") return <CategorySelectionBadges classNames="grid grid-cols4 items-center gap-1 ml-3 mr-3" key={"categorySelectionBadges"} formData={categoriesList} setFormData={setCategoriesList}
                             selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
 
-                        if (value == undefined) return
+                        // if (value == undefined) return
 
                         return <div className="grid grid-cols-4 items-center gap-4" key={key}>
                             <Label htmlFor="title" className="block text-right">
-                                {camelCaseToWords(key)}
+                                {key}
                             </Label>
                             <Input id={key} value={value} onChange={(e) => changeEventHandler(e)} className="w-[90%] col-span-3" />
                         </div>

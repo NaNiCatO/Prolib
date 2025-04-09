@@ -1,27 +1,51 @@
-import { generateUUID } from "@/lib/utils";
 import { AddBookData, BookData, BookDataAPI, BookEditable } from "./types";
 
-export const makeBookDataFromAPI = (bookDataAPI: BookDataAPI[]): BookData[] => {
-    const bookData: BookData[] = bookDataAPI.map(b => ({
-        id: b.id,
-        isCustomBook: b.data.isCustomBook,
-        isFavorite: b.data.isFavorite,
-        title: b.data.Title,
-        authors: b.data.Authors,
-        publisher: b.data.Publisher,
-        publishedDate: b.data.PublishedDate,
-        description: b.data.Description,
-        isbn10: b.data.ISBN10,
-        isbn13: b.data.ISBN13,
-        pageCount: b.data.PageCount.toString(),
-        categories: b.data.Categories,
-        language: b.data.Language,
-        coverUrl: b.data.Thumbnail,
-        rating: b.data.AvgRating,
-        ratingCount: b.data.PeopleRated
-    }))
+type BookDataAPISingleOrMultiple = BookDataAPI | BookDataAPI[]
 
-    return bookData
+export const makeBookDataFromAPI = <T extends BookDataAPISingleOrMultiple>(bookDataAPI: T): T extends BookDataAPI[] ? BookData[] : BookData => {
+    if (Array.isArray(bookDataAPI)) {
+        const bookData: BookData[] = bookDataAPI.map(b => ({
+            id: b.id,
+            isCustomBook: b.data.isCustomBook,
+            isFavorite: b.data.isFavorite,
+            title: b.data.Title,
+            authors: b.data.Authors,
+            publisher: b.data.Publisher,
+            publishedDate: b.data["Published Date"],
+            description: b.data.Description,
+            isbn10: b.data["ISBN 10"],
+            isbn13: b.data["ISBN 13"],
+            pageCount: b.data["Page Count"],
+            categories: b.data.Categories,
+            language: b.data.Language,
+            coverUrl: b.data["Thumbnail URL"],
+            rating: b.data["Average Rating"],
+            ratingCount: b.data["Ratings Count"]
+        }))
+
+        return bookData as any
+    } else {
+        const bookData: BookData = {
+            id: bookDataAPI.id,
+            isCustomBook: bookDataAPI.data.isCustomBook,
+            isFavorite: bookDataAPI.data.isFavorite,
+            title: bookDataAPI.data.Title,
+            authors: bookDataAPI.data.Authors,
+            publisher: bookDataAPI.data.Publisher,
+            publishedDate: bookDataAPI.data["Published Date"],
+            description: bookDataAPI.data.Description,
+            isbn10: bookDataAPI.data["ISBN 10"],
+            isbn13: bookDataAPI.data["ISBN 13"],
+            pageCount: bookDataAPI.data["Page Count"],
+            categories: bookDataAPI.data.Categories,
+            language: bookDataAPI.data.Language,
+            coverUrl: bookDataAPI.data["Thumbnail URL"],
+            rating: bookDataAPI.data["Average Rating"],
+            ratingCount: bookDataAPI.data["Ratings Count"]
+        }
+
+        return bookData as any
+    }
 }
 
 export const updateBookDataFromEditable = (bookData: BookData, bookDataEditable: BookEditable): BookData => {
@@ -35,15 +59,15 @@ export const updateBookDataFromEditable = (bookData: BookData, bookDataEditable:
 export const makeBookEditable = (book: BookData): BookEditable => {
     const bookEditable: BookEditable = {
         id: book.id,
-        title: book.title,
-        authors: book.authors,
-        publisher: book.publisher,
-        publishedDate: book.publishedDate,
-        description: book.description,
-        pageCount: book.pageCount,
-        categories: book.categories,
-        language: book.language,
-        coverUrl: book.coverUrl
+        Title: book.title,
+        Authors: book.authors,
+        Publisher: book.publisher,
+        "Published Date": book.publishedDate,
+        Description: book.description,
+        "Page Count": book.pageCount,
+        Categories: book.categories,
+        Language: book.language,
+        "Thumbnail URL": book.coverUrl
     }
 
     return bookEditable
@@ -58,16 +82,16 @@ export const makeAPIFromBookData = (book: BookData): BookDataAPI => {
             Title: book.title,
             Authors: book.authors,
             Publisher: book.publisher,
-            PublishedDate: book.publishedDate,
+            "Published Date": book.publishedDate,
             Description: book.description,
-            ISBN10: book.isbn10 ?? "",
-            ISBN13: book.isbn13 ?? "",
-            PageCount: parseInt(book.pageCount),
+            "ISBN 10": book.isbn10 ?? "",
+            "ISBN 13": book.isbn13 ?? "",
+            "Page Count": book.pageCount,
             Categories: book.categories,
             Language: book.language,
-            Thumbnail: book.coverUrl,
-            AvgRating: book.rating,
-            PeopleRated: book.ratingCount
+            "Thumbnail URL": book.coverUrl,
+            "Average Rating": book.rating,
+            "Ratings Count": book.ratingCount
         }
     }
 
@@ -83,16 +107,16 @@ export const makeAPIFromAddBookData = (book: AddBookData): BookDataAPI => {
             Title: book.title,
             Authors: book.authors,
             Publisher: book.publisher,
-            PublishedDate: book.publishedDate,
+            "Published Date": book.publishedDate,
             Description: book.description,
-            ISBN10: "",
-            ISBN13: "",
-            PageCount: parseInt(book.pageCount),
+            "ISBN 10": "",
+            "ISBN 13": "",
+            "Page Count": book.pageCount,
             Categories: book.categories,
             Language: book.language,
-            Thumbnail: book.coverUrl,
-            AvgRating: null,
-            PeopleRated: null
+            "Thumbnail URL": book.coverUrl,
+            "Average Rating": null,
+            "Ratings Count": null
         }
     }
 

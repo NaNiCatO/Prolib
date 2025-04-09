@@ -29,15 +29,15 @@ export type BookData = {
 
 export type BookEditable = {
     id: string
-    title: string
-    authors: string[]
-    publisher: string
-    publishedDate: string
-    description: string
-    pageCount: string
-    categories: string[]
-    language: string
-    coverUrl: string
+    Title: string
+    Authors: string[]
+    Publisher: string
+    "Published Date": string
+    Description: string
+    "Page Count": string
+    Categories: string[]
+    Language: string
+    "Thumbnail URL": string
 }
 
 export type AddBookData = {
@@ -60,17 +60,17 @@ export type BookDataAPI = {
         "Title": string,
         "Authors": string[],
         "Publisher": string,
-        "PublishedDate": string,
+        "Published Date": string,
         "Description": string,
-        "ISBN10": string,
-        "ISBN13": string,
-        "PageCount": number | string,
+        "ISBN 10": string,
+        "ISBN 13": string,
+        "Page Count": string,
         "Categories": string[],
         "Language": string,
-        "Thumbnail": string,
-        "AvgRating": number | null,
-        "PeopleRated": number | null,
-        "PreviewLink"?: string,
-        "InfoLink"?: string
+        "Thumbnail URL": string,
+        "Average Rating": number | null,
+        "Ratings Count": number | null,
+        "Preview Link"?: string,
+        "Info Link"?: string
     }
-}
+};
