@@ -136,11 +136,13 @@ class NLPPipeline:
             response = f"Top 5 similar books with {final_results[0]['Title']}: \n- " + "- ".join([book['Title']+'\n' for book in top_5_similar])
             #top5 book ids
             book_ID = [book["Id"] for book in top_5_similar]
-        elif intent == "ADD_BOOK":
-            response = "ADD_BOOK"
         else:
             # Step 4.1: Check if the intent is in the list of intents
-            if intent == "BOOK_TITLE":
+            if intent == "EDIT_BOOK":
+                response = "EDIT_BOOK"
+            if intent == "DELETE_BOOK":
+                response = "DELETE_BOOK"
+            elif intent == "BOOK_TITLE":
                 result = final_results[0]["Title"]
                 # print(f"Book Title: {result}")
             elif intent == "AUTHOR_INFO":
@@ -158,7 +160,7 @@ class NLPPipeline:
                 # print(f"Rating: {result}")
             else:
                 print("Unknown intent. No action taken.")
-                return "Unknown intent. No action taken."
+                return "Unknown intent. No action taken.", None
             book_name = final_results[0]["Title"]
 
             # Step 4.5: Convert result to string
@@ -184,7 +186,9 @@ class NLPPipeline:
         print(f"[Intent] {intent}" + f" (Score: {score:.4f})")
         if score < 0.4:
             # print("Low confidence in intent classification.")
-            return "Low confidence in intent classification."
+            return "Low confidence in intent classification.", None
+        if intent == "ADD_BOOK":
+            return "ADD_BOOK", None
 
         # Step 2: Named Entity Recognition
         ner_result = self.ner_extractor.extract_all(query)
@@ -201,10 +205,10 @@ class NLPPipeline:
         # print(f"final_results: {final_results}")
         if not final_results:
             print("No relevant information found.")
-            return "No relevant information found."
+            return "No relevant information found.", None
 
         # Step 4: Intent-specific result retrieval and response generation
-        # print(intent)
+        print(intent)
         response = self.Intent_specific_result_retrieval_and_Generate_respons(query, intent, final_results)
         
 
@@ -226,6 +230,9 @@ if __name__ == "__main__":
         "Find a book wrote by Lisa Regan and published in 2021.",
         "How many people rated Core Python Programming?",
         "Can you recommend some books that similar themes to Python?",
+        "I want to add a new book.",
+        "Edit Python.",
+        "Delete my book",
     ]
 
     for query in test_queries:
