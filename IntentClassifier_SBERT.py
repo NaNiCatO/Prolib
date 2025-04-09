@@ -158,20 +158,45 @@ class IntentClassifier:
                 "What’s a good follow-up after reading *Slaughterhouse-Five*?",
                 "Looking for coming-of-age stories like *Perks of Being a Wallflower*."
             ],
-            # "BOOK_THEMES": [
-            #     "What are the main themes in *Dune*?",
-            #     "Tell me about the themes in *1984*.",
-            #     "What are the philosophical ideas in *Brave New World*?",
-            #     "Explain the central themes of *Frankenstein*.",
-            #     "What moral lessons are in *To Kill a Mockingbird*?"
-            # ],
-            # "COMPARE_BOOKS": [
-            #     "Compare *1984* and *Brave New World*.",
-            #     "How is *Dune* different from *Foundation*?",
-            #     "Which is better, *Lord of the Rings* or *Game of Thrones*?",
-            #     "What are the similarities between *Harry Potter* and *Percy Jackson*?",
-            #     "How do *Pride and Prejudice* and *Jane Eyre* compare?"
-            # ]
+            "ADD_BOOK": [
+                "Add a book to my collection.",
+                "I want to add a book.",
+                "Can you add a book for me?",
+                "Please add a book.",
+                "I need to add a book to my list.",
+                "Add a new book.",
+                "I want to include a book.",
+                "Can you include a book for me?",
+                "Please include a book.",
+                "I need to include a book in my collection.",
+                "Add a new title to my collection.",
+                "I want to add a new title.",
+                "Can you add a new title for me?",
+            ],
+            "EDIT_BOOK": [
+                "Edit the details of a book.",
+                "I want to edit a book.",
+                "Can you edit a book for me?",
+                "Please edit a book.",
+                "I need to edit a book in my list.",
+                "Edit the information of a book.",
+                "I want to change the details of a book.",
+                "Can you change the details of a book for me?",
+                "Please change the details of a book.",
+                "I need to update the information of a book.",
+            ],
+            "DELETE_BOOK": [
+                "Delete a book from my collection.",
+                "I want to remove a book.",
+                "Can you delete a book for me?",
+                "Please remove a book.",
+                "I need to delete a book from my list.",
+                "Remove a book from my collection.",
+                "I want to get rid of a book.",
+                "Can you remove a book for me?",
+                "Please delete a book.",
+                "I need to eliminate a book from my collection.",
+            ]
         }
 
         # Precompute embeddings
@@ -207,7 +232,10 @@ if __name__ == "__main__":
         "Summarize The Hobbit.",
         "Recommend books similar to Brave New World.",
         "What are the themes of Frankenstein?",
-        "Compare 1984 and Brave New World."
+        "Compare 1984 and Brave New World.",
+        "I want to add a new book.",
+        "Edit my book",
+        "Delete my book",
     ]
 
     for query in test_queries:
