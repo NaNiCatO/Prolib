@@ -248,14 +248,15 @@ def add_book(book: Books):
     prolog_data = {
         "Id": book_id,
         "Title": data.Title,
-        "Authors": data.Authors,
+        # "Authors": data.Authors, should sent as a list
+        "Authors": json.dumps(data.Authors),
         "Publisher": data.Publisher,
         "Published_Date": data.Published_Date,
         "Description": data.Description,
         "ISBN_10": data.ISBN_10,
         "ISBN_13": data.ISBN_13,
         "Page_Count": data.Page_Count,
-        "Categories": data.Categories,
+        "Categories": json.dumps(data.Categories),
         "Language": data.Language,
         "Thumbnail_URL": data.Thumbnail_URL,
         "Average_Rating": data.Average_Rating or 0,
@@ -263,6 +264,7 @@ def add_book(book: Books):
         "Preview_Link": data.Preview_Link,
         "Info_Link": data.Info_Link,
     }
+    # print(f"Adding book to Prolog: {prolog_data}")
 
     # Add to Prolog
     if not manager.create(prolog_data):
