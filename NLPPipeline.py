@@ -137,10 +137,11 @@ class NLPPipeline:
             #top5 book ids
             book_ID = [book["Id"] for book in top_5_similar]
         else:
+            result = None
             # Step 4.1: Check if the intent is in the list of intents
             if intent == "EDIT_BOOK":
                 response = "EDIT_BOOK"
-            if intent == "DELETE_BOOK":
+            elif intent == "DELETE_BOOK":
                 response = "DELETE_BOOK"
             elif intent == "BOOK_TITLE":
                 result = final_results[0]["Title"]
@@ -164,18 +165,17 @@ class NLPPipeline:
             book_name = final_results[0]["Title"]
 
             # Step 4.5: Convert result to string
-            if isinstance(result, list):
-                result = ", ".join([str(r) for r in result])
-            elif isinstance(result, dict):
-                result = ", ".join([f"{k}: {v}" for k, v in result.items()])
-            elif isinstance(result, str):
-                result = result.strip()
-            else:
-                result = str(result)
-            # print(f"Result: {result}")
-
-            # Step 5: Generate response using Decoder
             if result :
+                if isinstance(result, list):
+                    result = ", ".join([str(r) for r in result])
+                elif isinstance(result, dict):
+                    result = ", ".join([f"{k}: {v}" for k, v in result.items()])
+                elif isinstance(result, str):
+                    result = result.strip()
+                else:
+                    result = str(result)
+            # print(f"Result: {result}")
+            # Step 5: Generate response using Decoder
                 response = self.decoder.generate_response(query, result, intent, book_name)
             book_ID = final_results[0]["Id"]
         return response, book_ID
@@ -208,7 +208,7 @@ class NLPPipeline:
             return "No relevant information found.", None
 
         # Step 4: Intent-specific result retrieval and response generation
-        print(intent)
+        # print(intent)
         response = self.Intent_specific_result_retrieval_and_Generate_respons(query, intent, final_results)
         
 
@@ -231,8 +231,8 @@ if __name__ == "__main__":
         "How many people rated Core Python Programming?",
         "Can you recommend some books that similar themes to Python?",
         "I want to add a new book.",
-        "Edit Python.",
-        "Delete my book",
+        "I want to edit Python.",
+        "Delete Physical Biology",
     ]
 
     for query in test_queries:

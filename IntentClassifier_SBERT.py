@@ -184,6 +184,7 @@ class IntentClassifier:
                 "Can you change the details of Jane Eyre for me?",
                 "Please change the details of Brave New World.",
                 "I need to update the information of The Hobbit."
+                "I want to edit Python.",
             ],
             "DELETE_BOOK": [
                 "Delete Crime and Punishment from my collection.",
@@ -195,7 +196,8 @@ class IntentClassifier:
                 "I want to get rid of Wuthering Heights.",
                 "Can you remove Dracula for me?",
                 "Please delete Anna Karenina.",
-                "I need to eliminate The Picture of Dorian Gray from my collection."
+                "I need to eliminate The Picture of Dorian Gray from my collection.",
+                "Delete Physical Biology",
             ]
         }
 
