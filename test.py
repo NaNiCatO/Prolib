@@ -26,5 +26,4 @@ book_data = {
     "Info Link": "http://example.com/info"
 }
 
-boo
 print(type(book))
