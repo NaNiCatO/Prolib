@@ -24,6 +24,8 @@ class IntentClassifier:
             ],
             "AUTHOR_INFO": [
                 "Who wrote Dune?",
+                "Who wrote Biology?",
+                "Who wrote Biology"
                 "Who wrote Quantum Enigma?",
                 "Who wrote 1984?",
                 "Who wrote Frankenstein?",
@@ -71,6 +73,9 @@ class IntentClassifier:
                 "When was Dune published",
                 "What year was 1984 released",
                 "When was 1984 published",
+                "When was Biology published",
+                "When was Quantum Enigma published",
+                "When was Biology published?",
                 "When was The Hydrogen Atom published",
                 "When was Frankenstein published",
                 "When was The Lord of the Rings published",
@@ -96,6 +101,7 @@ class IntentClassifier:
                 "When did The Chronicles of Narnia start being published?"
             ],
             "BOOK_SUMMARY": [
+                "Summarize Biology"
                 "Summarize the Computer Aided Manufacturing.",
                 "Summarize the book Dune.",
                 "Can you give me a summary of 1984?",
