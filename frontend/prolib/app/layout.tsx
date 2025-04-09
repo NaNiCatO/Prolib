@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import "./globals.css";
 import { usePathname } from "next/navigation";
 import ChatWidget from "./ui/chat-widget";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
   children,
@@ -25,6 +26,7 @@ export default function RootLayout({
               <ChatWidget />
               {children}
             </main>
+            <Toaster />
           </SidebarInset>
         </SidebarProvider>
       </body>

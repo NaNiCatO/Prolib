@@ -18,9 +18,7 @@ export default function Favorites() {
 		async function fetchBooks() {
 			try {
 				const response = await fetch(new URL('http://localhost:8000/books'));
-				console.log(response, "response")
 				const data: BookDataAPI[] = await response.json();
-				console.log(data, "data")
 				const formattedData = makeBookDataFromAPI(findFavoriteBooks(data))
 				setBooks(formattedData);
 			} catch (error) {

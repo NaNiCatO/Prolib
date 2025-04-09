@@ -1,15 +1,18 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageSquare, X, Send, GripVertical } from 'lucide-react';
+import { MessageSquare, X, Send, GripVertical, SquareArrowOutUpRightIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 
 interface Message {
     content: string;
     isUser: boolean;
-    // timestamp: Date;
+    book_id?: string;
 }
+
+const BookManipulate = ["DELETE_BOOK", "ADD_BOOK", "EDIT_BOOK"]
 
 export default function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +21,6 @@ export default function ChatWidget() {
         {
             content: 'Hello, How can I assist you?',
             isUser: false
-            // timestamp: new Date(),
         },
     ]);
 
@@ -103,17 +105,12 @@ export default function ChatWidget() {
             {
                 content: message,
                 isUser: true,
-                // timestamp: new Date(),
             },
         ];
 
         setMessages(newMessages);
         setMessage('');
 
-        // const formData = new FormData()
-        // formData.append("query", message)
-
-        // Simulate bot response (in a real app, you'd call your Prolog backend here)
         const res = await fetch(new URL("http://localhost:8000/nlp_query"), {
             method: "POST",
             headers: {
@@ -122,28 +119,44 @@ export default function ChatWidget() {
             body: JSON.stringify({ query: message }),
         })
 
-        const { result, book_ID } = (await res.json())
+        let { result, book_ID } = (await res.json());
 
-        setMessages(prevMessages => [
-            ...prevMessages,
-            {
-                content: `${result}${book_ID ? `\n${book_ID}` : ""}`,
-                isUser: false,
-                // timestamp: new Date(),
-            },
-        ]);
+        setMessages(prevMessages => {
+            if (BookManipulate.includes(result)) {
+                switch (result) {
+                    case "DELETE_BOOK":
+                    case "EDIT_BOOK":
+                        return [
+                            ...prevMessages,
+                            {
+                                content: `Here is the link to view this book. You may ${result == "DELETE_BOOK" ? "delete" : "edit"} the book if it is your own book.`,
+                                isUser: false,
+                                book_id: book_ID
+                            },
+                        ]
+                    case "ADD_BOOK":
+                        book_ID = "addBook"
+                        return [
+                            ...prevMessages,
+                            {
+                                content: "Here is the link to a form for adding a book.",
+                                isUser: false,
+                                book_id: book_ID
+                            },
+                        ]
+                }
+            }
 
-        // setTimeout(() => {
-        //     setMessages(prevMessages => [
-        //         ...prevMessages,
-        //         {
-        //             content: "I'm processing your request. How can I help with your book search?",
-        //             isUser: false,
-        //             timestamp: new Date(),
-        //         },
-        //     ]);
-        // }, 500);
-    };
+            return [
+                ...prevMessages,
+                {
+                    content: result,
+                    isUser: false,
+                    book_id: book_ID
+                },
+            ]
+        });
+    }
 
     return (
         <div className="fixed bottom-4 right-4 z-50">
@@ -185,7 +198,17 @@ export default function ChatWidget() {
                                             : 'bg-muted mr-12'
                                             } break-words overflow-hidden`}
                                     >
-                                        {msg.content}
+                                        {msg.content.split('\n').map((line, i) => (
+                                            <React.Fragment key={i}>
+                                                {line}
+                                                <br />
+                                            </React.Fragment>
+                                        ))}
+                                        {msg.book_id && (
+                                            <Link href={msg.book_id == "addBook" ? "/addBook" : `/bookDetails/${msg.book_id}`}>
+                                                <SquareArrowOutUpRightIcon className='mt-2' />
+                                            </Link>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -197,7 +220,7 @@ export default function ChatWidget() {
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 placeholder="Type your message here.."
-                                className="flex-1"
+                                className="flex-1 mb-2"
                             />
                             <Button type="submit" size="icon" variant="ghost">
                                 <Send className="h-4 w-4" />
@@ -216,3 +239,5 @@ export default function ChatWidget() {
         </div>
     );
 };
+
+
