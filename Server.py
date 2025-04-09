@@ -164,11 +164,11 @@ def get_all_books():
             raw["isCustomBook"] = raw.get("isCustomBook", "False") == "True"
 
             ## Handle missing fields gracefully
-            raw["Average Rating"] = raw.get("Average Rating", None)
-            raw["Ratings Count"] = raw.get("Ratings Count", None)
+            raw["Average Rating"] = None if raw.get("Average Rating") == "None" else raw.get("Average Rating")
+            raw["Ratings Count"] = None if raw.get("Ratings Count") == "None" else raw.get("Ratings Count")
 
-            raw["Preview Link"] = raw.get("Preview Link", "")
-            raw["Info Link"] = raw.get("Info Link", "")
+            raw["Preview Link"] = "" if raw.get("Preview Link") == "None" else raw.get("Preview Link")
+            raw["Info Link"] = "" if raw.get("Info Link") == "None" else raw.get("Info Link")
 
             # Parse into BookData and Books model
             book_data = BookData(**raw)
