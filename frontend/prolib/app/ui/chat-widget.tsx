@@ -111,6 +111,8 @@ export default function ChatWidget() {
         setMessage('');
 
         // Simulate bot response (in a real app, you'd call your Prolog backend here)
+        
+
         setTimeout(() => {
             setMessages(prevMessages => [
                 ...prevMessages,

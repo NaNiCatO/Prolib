@@ -1,124 +1,140 @@
 "use client"
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import GENRES from "../lib/bookGenres.json"
+import { AddBookData } from "../lib/types";
+import { camelCaseToWords } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import CategorySelectionBadges from "../ui/category-selection-badges";
+
+const defaultFormState: AddBookData = {
+    title: "",
+    authors: [],
+    categories: [],
+    description: "",
+    publisher: "",
+    publishedDate: "",
+    language: "",
+    pageCount: "1",
+    coverUrl: ""
+}
 
 const AddBookForm = () => {
-    const [formData, setFormData] = useState({
-        title: "",
-        author: "",
-        summary: "",
-        isbn: "",
-        genre: "",
-    });
-
+    const [formData, setFormData] = useState<AddBookData>(defaultFormState);
+    const [selectedCategory, setSelectedCategory] = useState("");
     const [coverImage, setCoverImage] = useState<null | File>(null);
+
+    const router = useRouter()
 
     const handleInputChange = (e: any) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleGenreChange = (value: string) => {
-        setFormData((prev) => ({ ...prev, genre: value }));
-    };
+    // const handleGenreChange = (value: string[]) => {
+    //     setFormData((prev) => ({ ...prev, categories: value }));
+    // };
 
-    const handleSubmit = (e: any) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault();
+
+        // Save the File glob on local and set path to coverUrl in formData
+        let filePath: string = "N/A";
+        if (coverImage) {
+            const formDataImage = new FormData();
+            formDataImage.append('image', coverImage);
+
+            const res1 = await fetch('/api/uploadImage', {
+                method: 'POST',
+                body: formDataImage,
+            });
+
+            filePath = `/uploads/${(await res1.json()).filename}`
+        }
+
+        setFormData(prev => ({ ...prev, coverUrl: filePath }))
         // Handle form submission here
-        console.log("Form data:", formData, "Cover image:", coverImage);
-        resetForm()
-        redirect("/myCatalog") // Change this to useRouter instead
+        const formDataBook = new FormData();
+        formDataBook.append('book', JSON.stringify(formData));
+
+        const res2 = await fetch('http://localhost:8000/books', {
+            method: 'POST',
+            body: formDataBook,
+        });
+
+        const resStatus = res2.status
+
+        console.log("Form data:", formData, "Cover image:", coverImage, resStatus);
+        // resetForm()
+        router.push("/myCatalog")
     };
 
     const resetForm = () => {
         setCoverImage(null)
-        setFormData({
-            title: "",
-            author: "",
-            summary: "",
-            isbn: "",
-            genre: "",
-        })
+        setFormData(defaultFormState)
     }
 
+    // console.log(formData, "formdata")
 
     return (
         <div className="max-w-4xl mx-auto">
             <form id="addBookForm" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Left side - form fields (2/3 width) */}
                 <div className="md:col-span-2 space-y-6">
-                    {/* Book Title */}
-                    <div className="space-y-2">
-                        <Label htmlFor="title" className="text-base font-medium">Book Title</Label>
-                        <Input
-                            id="title"
-                            name="title"
-                            placeholder="Enter book title"
-                            value={formData.title}
-                            onChange={handleInputChange}
-                            className="h-10"
-                        />
-                    </div>
+                    {Object.entries(formData).map(([key, value]) => {
+                        if (key == "coverUrl") return null
+                        if (key == "authors") return ( // field that explains to add comma for multiple authors 
+                            <div className="space-y-2" key={key}>
+                                <Label htmlFor={key} key={`${key}Label`} className="text-base font-medium">{camelCaseToWords(key)}</Label>
+                                <Input
+                                    id={key}
+                                    name={key}
+                                    key={`${key}Input`}
+                                    placeholder="Enter Author names"
+                                    value={value}
+                                    onChange={handleInputChange}
+                                    className="h-10"
+                                />
+                                <p className="text-sm text-gray-500" key={`${key}P`} >Separate multiple authors with commas (e.g., "J.K. Rowling, John Smith")</p>
+                            </div>
+                        )
+                        if (key == "description") return ( // Return a textarea instead of an input field
+                            <div className="space-y-2" key={key}>
+                                <Label htmlFor={key} key={`${key}Label`} className="text-base font-medium">{camelCaseToWords(key)}</Label>
+                                <Textarea
+                                    id={key}
+                                    name={key}
+                                    key={`${key}TextArea`}
+                                    placeholder="Enter book description"
+                                    value={value as string}
+                                    onChange={handleInputChange}
+                                    className="min-h-32"
+                                />
+                            </div>
+                        )
+                        if (key == "categories") return <CategorySelectionBadges classNames="space-y-2" key={"categorySelectionBadges"} formData={formData} setFormData={setFormData}
+                            selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
 
-                    {/* Author */}
-                    <div className="space-y-2">
-                        <Label htmlFor="author" className="text-base font-medium">Author</Label>
-                        <Input
-                            id="author"
-                            name="author"
-                            placeholder="Author's name"
-                            value={formData.author}
-                            onChange={handleInputChange}
-                            className="h-10"
-                        />
-                    </div>
+                        return <div className="space-y-2" key={key}>
+                            <Label htmlFor={key} key={`${key}Label`} className="text-base font-medium">{camelCaseToWords(key)}</Label>
+                            <Input
+                                id={key}
+                                name={key}
+                                key={`${key}Input`}
+                                placeholder={`Enter ${camelCaseToWords(key)}`}
+                                value={value}
+                                onChange={handleInputChange}
+                                className="h-10"
+                            />
+                        </div>
 
-                    {/* Summary */}
-                    <div className="space-y-2">
-                        <Label htmlFor="summary" className="text-base font-medium">Summary</Label>
-                        <Input
-                            id="summary"
-                            name="summary"
-                            placeholder="Short summary"
-                            value={formData.summary}
-                            onChange={handleInputChange}
-                            className="h-10"
-                        />
-                    </div>
-
-                    {/* ISBN */}
-                    <div className="space-y-2">
-                        <Label htmlFor="isbn" className="text-base font-medium">ISBN</Label>
-                        <Input
-                            id="isbn"
-                            name="isbn"
-                            placeholder="ISBN (Optional)"
-                            value={formData.isbn}
-                            onChange={handleInputChange}
-                            className="h-10"
-                        />
-                    </div>
-
-                    {/* Genre */}
-                    <div className="space-y-2">
-                        <Label htmlFor="genre" className="text-base font-medium">Genre</Label>
-                        <Select name="genre" value={formData.genre} onValueChange={handleGenreChange}>
-                            <SelectTrigger className="h-10">
-                                <SelectValue placeholder="Select Genre" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {GENRES.map(genre => <SelectItem value={genre.value} id={genre.value} key={genre.value} >{genre.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    })}
                 </div>
 
                 {/* Right side - cover image upload (1/3 width) */}
@@ -132,6 +148,7 @@ const AddBookForm = () => {
                                 <Image
                                     src={URL.createObjectURL(coverImage)}
                                     alt="Book cover preview"
+                                    key={"Image"}
                                     fill={true}
                                     className="w-full h-full object-cover rounded-md"
                                 />
@@ -144,6 +161,7 @@ const AddBookForm = () => {
                             <Input
                                 id="cover-upload"
                                 type="file"
+                                key={"imageInput"}
                                 accept="image/*"
                                 className="hidden"
                                 onChange={(e) => {
@@ -155,11 +173,11 @@ const AddBookForm = () => {
                 </div>
 
                 {/* Buttons - full width */}
-                <div className="md:col-span-3 flex space-x-4 mt-4">
-                    <Button variant="outline" onClick={resetForm} type="button" className="w-24">
+                <div className="md:col-span-3 flex space-x-4 mt-4 mb-8">
+                    <Button variant="outline" key={"CancelButton"} onClick={resetForm} type="button" className="w-24">
                         Cancel
                     </Button>
-                    <Button type="submit" className="w-24 bg-orange-500 hover:bg-orange-600">
+                    <Button type="submit" key={"SaveButton"} className="w-24 bg-orange-500 hover:bg-orange-600">
                         Save
                     </Button>
                 </div>

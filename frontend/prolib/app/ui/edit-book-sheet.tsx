@@ -1,3 +1,4 @@
+"use client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,11 +13,16 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { PenBox } from "lucide-react"
-import { ChangeEvent, Dispatch } from "react"
+import { ChangeEvent, Dispatch, useState } from "react"
 import { BookEditable } from "../lib/types"
 import { camelCaseToWords } from "@/lib/utils"
+import { Textarea } from "@/components/ui/textarea"
+import CategorySelectionBadges from "./category-selection-badges"
 
-export function EditBookSheet({ text, book, changeEventHandler, submitHandler }: { text: string, book: BookEditable, changeEventHandler: (e: ChangeEvent<HTMLInputElement>) => void, submitHandler: () => void }) {
+export function EditBookSheet({ text, book, changeEventHandler, submitHandler }: { text: string, book: BookEditable, changeEventHandler: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void, submitHandler: () => void }) {
+    const [categoriesList, setCategoriesList] = useState<{ categories: string[] }>({ categories: [] });
+    const [selectedCategory, setSelectedCategory] = useState("");
+
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -25,7 +31,7 @@ export function EditBookSheet({ text, book, changeEventHandler, submitHandler }:
                     {text}
                 </Button>
             </SheetTrigger>
-            <SheetContent>
+            <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                     <SheetTitle>Edit Book</SheetTitle>
                     <SheetDescription>
@@ -33,13 +39,39 @@ export function EditBookSheet({ text, book, changeEventHandler, submitHandler }:
                     </SheetDescription>
                 </SheetHeader>
                 <div className="grid gap-4 py-4">
-                    {Object.entries(book).map(([key, value], index) => {
+                    {Object.entries(book).map(([key, value]) => {
                         if (key == "id") return
-                        if (key == "authors") return // field that explains to add comma for multiple authors
-                        if (key == "description") return // Return a textarea instead of an input field
-                        if (key == "categories") return // Multiple Genre selections
+                        if (key == "authors") return (// field that explains to add comma for multiple authors
+                            <div className="grid grid-cols-4 items-center gap-4 gap-y-1" key={key}>
+                                <Label htmlFor="title" className="block text-right">
+                                    {camelCaseToWords(key)}
+                                </Label>
+                                <Input id={key} value={value} onChange={(e) => changeEventHandler(e)} className="w-[90%] col-span-3" />
+                                <p className="text-sm text-gray-500 col-span-4 ml-5 mr-5" key={`${key}P`} >Separate multiple authors with commas (e.g., "J.K. Rowling, John Smith")</p>
+                            </div>
+                        )
+                        if (key == "description") return (// Return a textarea instead of an input field
+                            <div className="grid grid-cols-4 items-start gap-4" key={key}>
+                                <Label htmlFor="title" className="block text-right">
+                                    {camelCaseToWords(key)}
+                                </Label>
+                                <Textarea
+                                    id={key}
+                                    name={key}
+                                    key={`${key}TextArea`}
+                                    placeholder="Enter book description"
+                                    value={value as string}
+                                    onChange={(e) => changeEventHandler(e)}
+                                    className="min-h-32 w-[90%] col-span-3"
+                                />
+                            </div>
+                        )
+                        if (key == "categories") return <CategorySelectionBadges classNames="grid grid-cols4 items-center gap-1 ml-3 mr-3" key={"categorySelectionBadges"} formData={categoriesList} setFormData={setCategoriesList}
+                            selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
 
-                        return <div className="grid grid-cols-4 items-center gap-4" key={index}>
+                        if (value == undefined) return
+
+                        return <div className="grid grid-cols-4 items-center gap-4" key={key}>
                             <Label htmlFor="title" className="block text-right">
                                 {camelCaseToWords(key)}
                             </Label>

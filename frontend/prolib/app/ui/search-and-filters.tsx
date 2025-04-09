@@ -69,11 +69,11 @@ export default function SearchAndFilters({ searchQuery, setSearchQuery, sortOpti
                                     <Checkbox
                                         id={`${genre.value}Checkbox`}
                                         key={`${genre.value}Checkbox`}
-                                        defaultChecked={genreFilter.includes(genre.value)}
-                                        checked={selectedGenreFilters.includes(genre.value)}
+                                        defaultChecked={genreFilter.includes(genre.name)}
+                                        checked={selectedGenreFilters.includes(genre.name)}
                                         onCheckedChange={(isChecked) => setSelectedGenreFilters(selectedGenres => {
-                                            if (isChecked && !selectedGenreFilters.includes(genre.value)) return [...selectedGenres, genre.value]
-                                            else if (!isChecked && selectedGenreFilters.includes(genre.value)) return selectedGenres.filter(g => g != genre.value)
+                                            if (isChecked && !selectedGenreFilters.includes(genre.name)) return [...selectedGenres, genre.name]
+                                            else if (!isChecked && selectedGenreFilters.includes(genre.name)) return selectedGenres.filter(g => g != genre.name)
                                             else return selectedGenres
                                         })}
                                     />

@@ -7,42 +7,45 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import DeleteBookAlertDialog from '@/app/ui/delete-book-alert-dialog';
 import { EditBookSheet } from '@/app/ui/edit-book-sheet';
-import { BookEditable } from '@/app/lib/types';
+import { BookData } from '@/app/lib/types';
+import { makeAPIFromBookData, makeBookEditable, updateBookDataFromEditable } from '@/app/lib/bookDataFormatting';
 
-interface BookData {
-    id: string;
-    isCustomBook: boolean
-    isFavorite: boolean
-    title: string;
-    author: string;
-    coverImage: string;
-    description: string;
-    releaseDate: string;
-    publisher: string;
-    language: string;
-    format: string;
-    isbn: string;
-    pages: number;
-    categories: string[];
-}
+// interface BookData {
+//     id: string;
+//     isCustomBook: boolean
+//     isFavorite: boolean
+//     title: string;
+//     author: string;
+//     coverImage: string;
+//     description: string;
+//     releaseDate: string;
+//     publisher: string;
+//     language: string;
+//     format: string;
+//     isbn: string;
+//     pages: number;
+//     categories: string[];
+// }
 
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
     // Example book data - in a real app, you'd fetch this based on route params
-    const book: BookData = {
+    let book: BookData = {
         id: '1',
         isCustomBook: true,
         isFavorite: false,
         title: 'Debt — The First 5,000 Years',
-        author: 'David Graeber',
-        coverImage: '/diary.jpg', // Placeholder for demo - replace with actual image path
+        authors: ['David Graeber'],
+        coverUrl: '/diary.jpg', // Placeholder for demo - replace with actual image path
         description: `Diminutive rooms, grand possibilities. Small Homes, Grand Living shows how to make use of a limited space and turn a small apartment into a design marvel! Here anthropologist David Graeber presents a stunning reversal of conventional wisdom. He shows that before there was money, there was debt. For more than 5,000 years, since the beginnings of the first agrarian empires, humans have used elaborate credit systems to buy and sell goods—that is, long before the invention of coins or cash.`,
-        releaseDate: 'May 2017',
+        publishedDate: 'May 2017',
         publisher: 'Melville House',
         language: 'English',
-        format: '22 x 28 cm',
-        isbn: '978-3-89955-598-8',
-        pages: 256,
-        categories: ['History', 'Economics', 'Anthropology']
+        isbn10: "",
+        isbn13: '978-3-89955-598-8',
+        pageCount: "256",
+        categories: ['History', 'Economics', 'Anthropology'],
+        rating: 3.5,
+        ratingCount: 86
     };
 
     const router = useRouter()
@@ -52,27 +55,8 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     console.log(id)
     // Fetch book based on book id here
 
-    const makeEditable = (book: BookData): BookEditable => {
-        const bookEditable: BookEditable = {
-            id: book.id,
-            title: book.title,
-            authors: [book.author],
-            publisher: book.publisher,
-            publishedDate: book.releaseDate,
-            description: book.description,
-            isbn10: "",
-            isbn13: book.isbn,
-            pageCount: book.pages,
-            categories: book.categories,
-            language: book.language,
-            coverUrl: book.coverImage
-        }
-
-        return bookEditable
-    }
-
     const [isFavorite, setIsFavorite] = useState(book?.isFavorite ?? false)
-    const [bookEditData, setBookEditData] = useState(makeEditable(book))
+    const [bookEditData, setBookEditData] = useState(makeBookEditable(book))
 
     const handleToggleFavorites = () => {
         // update backend data
@@ -81,7 +65,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
         setIsFavorite(b => !b)
     }
 
-    const handleChangeEvent = (e: ChangeEvent<HTMLInputElement>) => {
+    const handleChangeEvent = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const id: string = e.target.id
         const value = e.target.value
         setBookEditData(b => {
@@ -90,23 +74,35 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
         console.log(bookEditData)
     }
 
-    const handleDeleteBook = () => {
+    const handleDeleteBook = async () => {
         // update backend data
-        // here
+        const res = await fetch(`http://localhost:8000/books/${id}`, { method: "DELETE" })
         console.log(id)
+        console.log(res.ok)
 
         router.back()
         // Display toast
     }
 
-    const handleEditBook = () => {
+    const handleEditBook = async () => {
+        book = updateBookDataFromEditable(book, bookEditData)
+        const bookApi = makeAPIFromBookData(book)
         // update backend data
-        // here
+        const formDataBookUpdate = new FormData();
+        formDataBookUpdate.append('update', JSON.stringify(bookApi));
+
+        const res = await fetch(`http://localhost:8000/books/${id}`, {
+            method: "PATCH",
+            body: formDataBookUpdate
+        })
+
         console.log(id)
-        console.log(bookEditData)
+        console.log(res.ok)
+        console.log(bookApi)
 
         // router.prefetch(`/bookDetails/${id}`)
         router.refresh()
+        // Display toast
     }
 
     return (
@@ -138,8 +134,8 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                         </div>
                         <div className="relative h-100 w-auto">
                             <Image
-                                src={book.coverImage}
-                                alt={`${book.title} by ${book.author}`}
+                                src={book.coverUrl}
+                                alt={`${book.title} by ${book.authors.join(", ")}`}
                                 fill={true}
                                 className="w-full object-contain aspect-[3/4] rounded"
                             />
@@ -150,7 +146,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 {/* Book Details - Right Column */}
                 <div className="md:col-span-2">
                     <h1 className="text-3xl font-bold mb-1">{book.title}</h1>
-                    <h2 className="text-xl text-gray-600 mb-4">by {book.author}</h2>
+                    <h2 className="text-xl text-gray-600 mb-4">by {book.authors.join(", ")}</h2>
 
                     <div className="flex flex-wrap gap-2 mb-6">
                         {book.categories.map(category => (
@@ -168,16 +164,16 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                             <p>{book.publisher}</p>
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-gray-500">Release Date</h3>
-                            <p>{book.releaseDate}</p>
+                            <h3 className="text-sm font-medium text-gray-500">Published Date</h3>
+                            <p>{book.publishedDate}</p>
                         </div>
                         <div>
                             <h3 className="text-sm font-medium text-gray-500">Features</h3>
-                            <p>Full color, {book.pages} pages</p>
+                            <p>Full color, {book.pageCount} pages</p>
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-gray-500">Format</h3>
-                            <p>{book.format}</p>
+                            <h3 className="text-sm font-medium text-gray-500">Rating</h3>
+                            <p>{book.rating == null ? "None" : `${book.rating}/5`}</p>
                         </div>
                         <div>
                             <h3 className="text-sm font-medium text-gray-500">Language</h3>
@@ -185,7 +181,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                         </div>
                         <div>
                             <h3 className="text-sm font-medium text-gray-500">ISBN</h3>
-                            <p>{book.isbn}</p>
+                            <p>{book.isbn13}</p>
                         </div>
                     </div>
 
